@@ -1,0 +1,126 @@
+{
+  "name": "Willing Box - Relationship Growth App",
+  "short_name": "WillingBox",
+  "description": "Grow your relationship through weekly intentional actions",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#3B82F6",
+  "background_color": "#ffffff",
+  "orientation": "portrait",
+  "scope": "/",
+  "categories": ["lifestyle", "health", "productivity"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/mobile-1.png",
+      "sizes": "414x896",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Create your wants list"
+    },
+    {
+      "src": "/screenshots/mobile-2.png",
+      "sizes": "414x896", 
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Select what you're willing to work on"
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "shortcuts": [
+    {
+      "name": "My Innermosts",
+      "short_name": "Innermosts",
+      "description": "View your active relationship pairings",
+      "url": "/innermosts",
+      "icons": [
+        {
+          "src": "/icons/shortcut-innermosts.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Weekly Guess",
+      "short_name": "Guess",
+      "description": "Make your weekly guess about your partner",
+      "url": "/guess",
+      "icons": [
+        {
+          "src": "/icons/shortcut-guess.png", 
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.willingbox.app",
+      "id": "com.willingbox.app"
+    },
+    {
+      "platform": "itunes", 
+      "url": "https://apps.apple.com/app/willing-box/id123456789"
+    }
+  ]
+}
