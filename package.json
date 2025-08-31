@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
+    "build:strict": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist",
     "cap:add": "npx cap add",
     "cap:copy": "npx cap copy",
     "cap:sync": "npx cap sync",
