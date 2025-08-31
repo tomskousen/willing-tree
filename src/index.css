@@ -7,12 +7,12 @@
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+  line-height: 1.6;
   font-weight: 400;
 
   color-scheme: light;
-  color: #213547;
-  background-color: #ffffff;
+  color: #1f2937; /* stone-800 for better readability */
+  background-color: #faf7f5; /* bark-50 for warm background */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -21,14 +21,14 @@
   -webkit-text-size-adjust: 100%;
 }
 
-/* Mobile-first responsive design */
+/* Mobile-first responsive design - Larger base font for readability */
 html {
-  font-size: 16px;
+  font-size: 18px; /* Increased from 16px for better readability */
 }
 
 @media (max-width: 640px) {
   html {
-    font-size: 14px;
+    font-size: 16px; /* Still readable on mobile */
   }
 }
 
@@ -37,7 +37,7 @@ body {
   padding: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #f9fafb;
+  background-color: #faf7f5; /* bark-50 warm background */
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
@@ -114,42 +114,71 @@ body {
 
 /* Focus states for accessibility */
 .focus-visible:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #4a8b4a; /* tree-500 */
   outline-offset: 2px;
 }
 
-/* HIGH CONTRAST DEBUG STYLES - Make sure content is visible */
+/* Willing Tree Theme Styles */
 * {
   box-sizing: border-box;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: #000000 !important;
-  font-weight: bold !important;
+  color: #244224; /* tree-800 for headers */
+  font-weight: 600;
 }
 
 p, span, div {
-  color: #1a1a1a !important;
+  color: #1f2937; /* stone-800 for text */
 }
 
 button {
-  color: #ffffff !important;
-  background-color: #2563eb !important;
-  border: 2px solid #1d4ed8 !important;
-  padding: 8px 16px !important;
-  border-radius: 4px !important;
+  color: #ffffff;
+  background-color: #4a8b4a; /* tree-500 primary action */
+  border: 1px solid #3d733d; /* tree-600 */
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1.125rem; /* Larger for readability */
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
-/* Make sure forms are visible */
+button:hover {
+  background-color: #3d733d; /* tree-600 */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+button:disabled {
+  background-color: #9ca3af; /* stone-400 */
+  border-color: #d1d5db; /* stone-300 */
+  cursor: not-allowed;
+}
+
+/* Make sure forms are visible and accessible */
 input, textarea, select {
-  color: #000000 !important;
-  background-color: #ffffff !important;
-  border: 2px solid #4b5563 !important;
-  padding: 8px !important;
+  color: #1f2937; /* stone-800 */
+  background-color: #ffffff;
+  border: 2px solid #a8d5a8; /* tree-200 */
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #4a8b4a; /* tree-500 */
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(74, 139, 74, 0.1);
 }
 
 /* Ensure links are visible */
 a {
-  color: #2563eb !important;
-  text-decoration: underline !important;
+  color: #4a8b4a; /* tree-500 */
+  text-decoration: none;
+  font-weight: 500;
+}
+
+a:hover {
+  color: #3d733d; /* tree-600 */
+  text-decoration: underline;
 }
