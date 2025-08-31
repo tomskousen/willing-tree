@@ -38,11 +38,24 @@ interface Innermost {
   partnerWillingSelections?: WillingSelection[]; // Partner's willing to work on from user's wishes
 }
 
+interface WeeklyGame {
+  week: number;
+  userSelections: string[];
+  partnerSelections: string[];
+  scores: { userPoints: number; partnerPoints: number };
+  userWillingSelections: WillingSelection[];
+}
+
+interface GameResults {
+  userTotalPoints: number;
+  userGuessResults: Array<{ wishId: string; wasCorrect: boolean; points: number }>;
+}
+
 // The Willing Tree Component - like a feed box showing the two partners
 const WillingBoxDisplay = ({ user, partnerEmail, innermost }: { 
   user: User | null; 
   partnerEmail: string;
-  innermost?: Innermost;
+  innermost?: Innermost | null;
 }) => {
   const getPartnerName = () => {
     if (innermost?.status === 'active') {
@@ -154,7 +167,43 @@ export default function MinimalApp() {
   const [currentWeekActions, setCurrentWeekActions] = useState<{[wishId: string]: 'pending' | 'completed'}>({});
   const [userGuesses, setUserGuesses] = useState<{[wishId: string]: boolean}>({});
   const [gamePhase, setGamePhase] = useState<'guessing' | 'results'>('guessing');
-  const [finalResults, setFinalResults] = useState<unknown>(null);
+  const [finalResults, setFinalResults] = useState<GameResults | null>(null);
+
+  // WeeklyGame interface
+  interface WeeklyGame {
+    week: number;
+    userSelections: string[];
+    partnerSelections: string[];
+    scores: { userPoints: number; partnerPoints: number };
+    userWillingSelections: WillingSelection[];
+  }
+  
+  interface GameResults {
+    userTotalPoints: number;
+    userGuessResults: Array<{ wishId: string; wasCorrect: boolean; points: number }>;
+  }
+  
+  const [currentWeeklyGame, setCurrentWeeklyGame] = useState<WeeklyGame | null>(null);
+
+  // Helper functions
+  const getCurrentWeekNumber = () => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1);
+    const diff = now.getTime() - start.getTime();
+    const oneWeek = 1000 * 60 * 60 * 24 * 7;
+    return Math.floor(diff / oneWeek) + 1;
+  };
+
+  const getPartnerWishes = (): Wish[] => {
+    // Return demo partner wishes for testing
+    return [
+      { id: 'pw1', text: 'Listen without trying to fix everything', category: 'Communication', isMostCherished: true, createdAt: new Date() },
+      { id: 'pw2', text: 'Plan regular date nights', category: 'Quality Time', isMostCherished: false, createdAt: new Date() },
+      { id: 'pw3', text: 'Give me compliments about how I look', category: 'Affection', isMostCherished: false, createdAt: new Date() },
+      { id: 'pw4', text: 'Help with household chores without being asked', category: 'Support', isMostCherished: false, createdAt: new Date() },
+      { id: 'pw5', text: 'Be patient when I am stressed', category: 'Understanding', isMostCherished: false, createdAt: new Date() }
+    ];
+  };
 
   // Research-based wish suggestions by gender and age
   const getWishSuggestions = (gender?: string, age?: number): {category: string, wishes: string[]}[] => {
@@ -1516,7 +1565,7 @@ export default function MinimalApp() {
             
             <div className="p-6">
               <div className="grid gap-4">
-                {partnerWishes.map((wish) => {
+                {partnerWishes.map((wish: Wish) => {
                   const isSelected = willingSelections[wish.id] || false;
                   const pointValue = wish.isMostCherished ? 4 : 2; // Double for cherished (2pts base * 2)
                   
@@ -2190,7 +2239,7 @@ export default function MinimalApp() {
             
             <div className="p-6">
               <div className="grid gap-4">
-                {partnerWishes.map((wish) => {
+                {partnerWishes.map((wish: Wish) => {
                   const selection = currentWillingSelections.find(s => s.wishId === wish.id);
                   const isSelected = !!selection;
                   const priority = selection?.priority || 0;
