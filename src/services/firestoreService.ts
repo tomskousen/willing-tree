@@ -8,7 +8,7 @@ import {
   where, 
   getDocs,
   serverTimestamp,
-  DocumentData 
+  type DocumentData 
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import type { User, Innermost, WillingBox, WeeklyScore } from '../types';

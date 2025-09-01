@@ -65,7 +65,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
+      <Router basename="/willing-tree">
         <div className="App">
           <Routes>
             {/* Public Auth Routes */}

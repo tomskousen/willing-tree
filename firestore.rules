@@ -1,91 +1,48 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow authenticated users to read/write their own user document
+    // Users collection
     match /users/{userId} {
-      // Allow read if user is authenticated and it's their document
-      allow read: if request.auth != null && request.auth.uid == userId;
-      
-      // Allow create if user is authenticated and creating their own document
+      allow read: if request.auth != null;
       allow create: if request.auth != null && request.auth.uid == userId;
-      
-      // Allow update if user is authenticated and updating their own document
       allow update: if request.auth != null && request.auth.uid == userId;
-      
-      // Never allow delete of user documents
       allow delete: if false;
     }
     
-    // Allow authenticated users to query users collection for finding partners
-    match /users/{userId} {
-      allow get: if request.auth != null;
-      allow list: if request.auth != null && request.query.limit <= 10;
-    }
-    
-    // Allow authenticated users to read/write innermosts they're part of
+    // Innermosts collection
     match /innermosts/{innermostId} {
-      // Allow read if authenticated and part of the innermost
-      allow read: if request.auth != null && 
-        (request.auth.uid == resource.data.partnerA || 
-         request.auth.uid == resource.data.partnerB);
-      
-      // Allow create if authenticated
+      allow read: if request.auth != null;
       allow create: if request.auth != null;
-      
-      // Allow update if part of the innermost
-      allow update: if request.auth != null && 
-        (request.auth.uid == resource.data.partnerA || 
-         request.auth.uid == resource.data.partnerB);
-      
-      // Allow delete if part of the innermost
-      allow delete: if request.auth != null && 
-        (request.auth.uid == resource.data.partnerA || 
-         request.auth.uid == resource.data.partnerB);
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
     }
     
-    // Allow authenticated users to read/write willing boxes they're part of
+    // WillingBoxes collection
     match /willingBoxes/{boxId} {
-      // Allow read if authenticated and part of the box
-      allow read: if request.auth != null && 
-        (request.auth.uid == resource.data.partnerA || 
-         request.auth.uid == resource.data.partnerB);
-      
-      // Allow create if authenticated
+      allow read: if request.auth != null;
       allow create: if request.auth != null;
-      
-      // Allow update if part of the box
-      allow update: if request.auth != null && 
-        (request.auth.uid == resource.data.partnerA || 
-         request.auth.uid == resource.data.partnerB ||
-         request.auth.uid == request.resource.data.partnerA || 
-         request.auth.uid == request.resource.data.partnerB);
-      
-      // No delete for willing boxes
+      allow update: if request.auth != null;
       allow delete: if false;
     }
     
-    // Allow authenticated users to read/write their pairing invitations
+    // PairingInvitations collection
     match /pairingInvitations/{inviteId} {
-      allow read: if request.auth != null && 
-        (request.auth.uid == resource.data.senderId || 
-         request.auth.email == resource.data.recipientEmail);
-      allow create: if request.auth != null && 
-        request.auth.uid == request.resource.data.senderId;
-      allow update: if request.auth != null && 
-        request.auth.email == resource.data.recipientEmail;
-      allow delete: if request.auth != null && 
-        request.auth.uid == resource.data.senderId;
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
     }
     
-    // Email and SMS queues (for cloud functions)
-    match /emailQueue/{document} {
+    // EmailQueue collection
+    match /emailQueue/{emailId} {
       allow create: if request.auth != null;
       allow read: if false;
       allow update: if false;
       allow delete: if false;
     }
     
-    match /smsQueue/{document} {
+    // SmsQueue collection
+    match /smsQueue/{smsId} {
       allow create: if request.auth != null;
       allow read: if false;
       allow update: if false;
