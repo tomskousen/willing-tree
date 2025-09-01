@@ -35,12 +35,13 @@ export interface PairingInvitation {
   expiresAt: Date;
 }
 
-// Wishes and Willing Lists - NEW GAME LOGIC
+// WishLists and WillingLists - WILLING TREE GAME LOGIC
+// We Plant Trees, not seeds!
 export interface Wish {
   id: string;
   text: string;
   category: 'communication' | 'affection' | 'household' | 'time' | 'personal';
-  isMostWanted: boolean;  // Max 2 per list
+  isMostWanted: boolean;  // Only 1 per WishList - worth TRIPLE points
   order: number;  // 1-12
   createdBy: string;
 }
@@ -50,32 +51,37 @@ export type Want = Wish;
 
 export interface WillingBox {
   id: string;
-  innermostId: string;
+  innermostId: string;  // The partnership between two people
   partnerA: string;
   partnerB: string;
   
-  // NEW: Separate wishlists for each partner (12 items each)
-  // These ARE visible to the other partner
-  partnerAWishlist: Wish[];  // What A wishes B would do
-  partnerBWishlist: Wish[];  // What B wishes A would do
+  // WishLists - 12 items each
+  // Partner A sees Partner B's WishList and vice versa
+  partnerAWishList: Wish[];  // What A wishes B would do
+  partnerBWishList: Wish[];  // What B wishes A would do
   
-  // UNCHANGED: Willing selections remain private
-  // A selects from B's wishlist, B selects from A's wishlist
-  partnerAWilling: WillingItem[];  // A's selections from B's wishlist
-  partnerBWilling: WillingItem[];  // B's selections from A's wishlist
+  // WillingLists - PRIVATE until day 7 reveal
+  // A selects 3 items from B's WishList, B selects 3 from A's WishList
+  partnerAWillingList: WillingItem[];  // A's 3 selections from B's WishList
+  partnerBWillingList: WillingItem[];  // B's 3 selections from A's WishList
   
   weekNumber: number;
-  status: 'creating_wishes' | 'selecting_willing' | 'guessing' | 'revealed';
+  status: 'planting_trees' | 'selecting_willing' | 'guessing' | 'revealed';
   lockedAt?: Date;
   isLocked: boolean;
   
   // Legacy support
+  partnerAWishlist?: Wish[];
+  partnerBWishlist?: Wish[];
+  partnerAWilling?: WillingItem[];
+  partnerBWilling?: WillingItem[];
   wants?: Wish[];
 }
 
 export interface WillingItem {
-  wishId: string;  // References partner's wish
-  priority: number;  // 1-5 (most to least willing)
+  wishId: string;  // References partner's Wish
+  priority: number;  // 1-3 (ranked by importance)
+  // Top priority (1) is worth DOUBLE points if guessed
   effortLevel?: 'easy' | 'moderate' | 'challenging';
   
   // Legacy support

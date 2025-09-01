@@ -10,35 +10,50 @@ import { Want, WeeklyScore, WeeklyGuess } from '../types';
 
 export class ScoringEngine {
   /**
-   * Calculate points for a weekly guess
+   * Calculate points for a weekly guess - WILLING TREE SCORING
    * @param guess The guess made by one partner
-   * @param actualEffort What the other partner actually worked on
-   * @param wants All wants to check for Most Wanted status
+   * @param actualWillingItem The WillingItem the partner selected
+   * @param wishList The WishList to check for Most Wanted status
    */
   static calculateGuessPoints(
     guess: WeeklyGuess,
-    actualEffort: string | null,
-    wants: Want[]
+    actualWillingItem: WillingItem | null,
+    wishList: Want[]
   ): { guesserPoints: number; performerPoints: number } {
-    // No guess made
-    if (!guess.guessedWantId && !actualEffort) {
+    // No guess made or no willing item
+    if (!guess.guessedWantId || !actualWillingItem) {
       return { guesserPoints: 0, performerPoints: 0 };
     }
 
-    // Correct guess
-    const isCorrect = guess.guessedWantId === actualEffort;
+    // Check if guess is correct
+    const isCorrect = guess.guessedWantId === actualWillingItem.wishId;
     if (!isCorrect) {
       return { guesserPoints: 0, performerPoints: 0 };
     }
 
-    // Find if the want is "Most Wanted" (worth double points)
-    const want = wants.find(w => w.id === actualEffort);
-    const isMostWanted = want?.isMostWanted || false;
-    const multiplier = isMostWanted ? 2 : 1;
+    // Find the wish to check if it's Most Wanted
+    const wish = wishList.find(w => w.id === actualWillingItem.wishId);
+    const isMostWanted = wish?.isMostWanted || false;
+    const isTopPriority = actualWillingItem.priority === 1;
+
+    // Calculate multipliers
+    let guesserMultiplier = 1;
+    let performerMultiplier = 1;
+
+    // TRIPLE points if Most Wanted
+    if (isMostWanted) {
+      guesserMultiplier = 3;
+      performerMultiplier = 3;
+    }
+
+    // DOUBLE points if top priority
+    if (isTopPriority) {
+      performerMultiplier *= 2;  // Stack with Most Wanted if applicable
+    }
 
     return {
-      guesserPoints: 1 * multiplier,     // 1 pt (2 if Most Wanted)
-      performerPoints: 2 * multiplier    // 2 pts (4 if Most Wanted)
+      guesserPoints: 1 * guesserMultiplier,       // Base 1 pt (3 if Most Wanted)
+      performerPoints: 2 * performerMultiplier    // Base 2 pts (x3 if Most Wanted, x2 if top priority)
     };
   }
 
@@ -80,28 +95,29 @@ export class ScoringEngine {
   }
 
   /**
-   * Validate wishlist has exactly 12 items with 2 marked as Most Wanted
+   * Validate WishList has exactly 12 items with 1 marked as Most Wanted
    */
-  static validateWishlist(wishes: Want[]): boolean {
+  static validateWishList(wishes: Want[]): boolean {
     if (wishes.length !== 12) return false;
     const mostWantedCount = wishes.filter(w => w.isMostWanted).length;
-    return mostWantedCount === 2;
+    return mostWantedCount === 1;  // Only 1 Most Wanted per WishList
   }
   
   // Legacy support
-  static validateMostWanted = ScoringEngine.validateWishlist;
+  static validateWishlist = ScoringEngine.validateWishList;
+  static validateMostWanted = ScoringEngine.validateWishList;
 
   /**
-   * Validate that willing list has exactly 5 items with priorities 1-5
+   * Validate that WillingList has exactly 3 items with priorities 1-3
    */
   static validateWillingList(
     willingIds: string[], 
     priorities: Record<string, number>
   ): boolean {
-    if (willingIds.length !== 5) return false;
+    if (willingIds.length !== 3) return false;  // Exactly 3 items
     
     const priorityValues = Object.values(priorities).sort();
-    const expectedPriorities = [1, 2, 3, 4, 5];
+    const expectedPriorities = [1, 2, 3];  // Ranked 1-3
     
     return JSON.stringify(priorityValues) === JSON.stringify(expectedPriorities);
   }

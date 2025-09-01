@@ -45,7 +45,9 @@ body {
   width: 100%;
   min-height: 100vh;
   background-color: white;
-  /* Remove constraining max-width for debugging */
+  /* 3px border around entire app perimeter */
+  border: 3px solid #4a8b4a; /* tree-500 green border */
+  box-sizing: border-box;
 }
 
 /* PWA-specific styles */
