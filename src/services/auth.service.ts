@@ -4,7 +4,7 @@ import {
   signOut,
   sendPasswordResetEmail,
   updateProfile,
-  User,
+  User as FirebaseUser,
   onAuthStateChanged,
   sendEmailVerification,
   multiFactor,
@@ -31,7 +31,7 @@ export interface UserProfile {
 }
 
 class AuthService {
-  private currentUser: User | null = null;
+  private currentUser: FirebaseUser | null = null;
   private recaptchaVerifier: RecaptchaVerifier | null = null;
 
   constructor() {
@@ -127,7 +127,7 @@ class AuthService {
   }
 
   // Get current user
-  getCurrentUser(): User | null {
+  getCurrentUser(): FirebaseUser | null {
     return this.currentUser;
   }
 
@@ -216,7 +216,7 @@ class AuthService {
   }
 
   // Wait for auth to be ready
-  async waitForAuth(): Promise<User | null> {
+  async waitForAuth(): Promise<FirebaseUser | null> {
     return new Promise((resolve) => {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         unsubscribe();

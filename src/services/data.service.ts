@@ -16,7 +16,49 @@ import {
   Unsubscribe
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { User, Innermost, WillingBox, Wish, WillingItem } from '../types';
+
+// Import types properly
+export interface Innermost {
+  id: string;
+  partnerA: string;
+  partnerB: string;
+  partnerAEmail: string;
+  partnerBEmail: string;
+  status: 'pending' | 'active' | 'paused';
+  pairingCode?: string;
+  inviteMessage?: string;
+  createdAt: any;
+}
+
+export interface Wish {
+  id: string;
+  text: string;
+  category: string;
+  isMostWanted: boolean;
+  createdAt: Date;
+}
+
+export interface WillingItem {
+  wishId: string;
+  priority: number;
+  effortLevel?: 'easy' | 'moderate' | 'challenging';
+}
+
+export interface WillingBox {
+  id: string;
+  innermostId: string;
+  partnerA: string;
+  partnerB: string;
+  partnerAWishList: Wish[];
+  partnerBWishList: Wish[];
+  partnerAWillingList: WillingItem[];
+  partnerBWillingList: WillingItem[];
+  weekNumber: number;
+  status: 'planting_trees' | 'selecting_willing' | 'guessing' | 'revealed';
+  isLocked: boolean;
+  createdAt?: any;
+  lockedAt?: any;
+}
 
 class DataService {
   // Create a new Innermost (partnership)

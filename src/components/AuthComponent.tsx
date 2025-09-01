@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { authService } from '../services/auth.service';
 import { dataService } from '../services/data.service';
 import { emailService } from '../services/email.service';
-import { User } from 'firebase/auth';
 
 interface AuthComponentProps {
   onAuthSuccess: (user: any) => void;
