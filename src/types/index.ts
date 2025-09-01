@@ -6,9 +6,12 @@ export interface User {
   age: number;
   gender: 'male' | 'female' | 'other';
   activeInnermosts: string[];
-  createdAt: Date;
+  createdAt: Date | any; // Support Firestore timestamps
   subscriptionStatus: 'free' | 'premium' | 'expired';
   subscriptionEndDate?: Date;
+  lastLogin?: Date | any;
+  emailVerified?: boolean;
+  twoFactorEnabled?: boolean;
 }
 
 // Pairing & Innermost Types
@@ -67,8 +70,9 @@ export interface WillingBox {
   
   weekNumber: number;
   status: 'planting_trees' | 'selecting_willing' | 'guessing' | 'revealed';
-  lockedAt?: Date;
+  lockedAt?: Date | any;
   isLocked: boolean;
+  createdAt?: Date | any;
   
   // Legacy support
   partnerAWishlist?: Wish[];
