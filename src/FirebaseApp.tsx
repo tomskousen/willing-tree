@@ -3,6 +3,7 @@ import { AuthComponent } from './components/AuthComponent';
 import { authService } from './services/auth.service';
 import { dataService, Innermost, WillingBox, Wish, WillingItem } from './services/data.service';
 import { emailService } from './services/email.service';
+import { smsService } from './services/sms.service';
 import { auth } from './config/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
@@ -36,7 +37,11 @@ export default function FirebaseApp() {
   const [currentWishes, setCurrentWishes] = useState<Wish[]>([]);
   const [currentWillingSelections, setCurrentWillingSelections] = useState<WillingItem[]>([]);
   const [partnerEmail, setPartnerEmail] = useState('');
+  const [partnerPhone, setPartnerPhone] = useState('');
   const [inviteMessage, setInviteMessage] = useState('');
+  const [inviteMethod, setInviteMethod] = useState<'email' | 'sms'>('email');
+  const [mutualCode, setMutualCode] = useState('');
+  const [showMutualPairing, setShowMutualPairing] = useState(false);
 
   // Listen for auth state changes
   useEffect(() => {
@@ -131,27 +136,143 @@ export default function FirebaseApp() {
       // Create the innermost
       const innermost = await dataService.createInnermost(
         firebaseUser.uid,
-        partnerEmail,
+        inviteMethod === 'email' ? partnerEmail : partnerPhone,
         userProfile.displayName
       );
 
-      // Send invitation email
-      await emailService.sendPairingInvite({
-        toEmail: partnerEmail,
-        fromName: userProfile.displayName,
-        pairingCode: innermost.pairingCode!,
-        message: inviteMessage
-      });
+      // Send invitation based on method
+      if (inviteMethod === 'email') {
+        await emailService.sendPairingInvite({
+          toEmail: partnerEmail,
+          fromName: userProfile.displayName,
+          pairingCode: innermost.pairingCode!,
+          message: inviteMessage
+        });
+        alert(`Invitation sent to ${partnerEmail}! They'll receive an email with a pairing code.`);
+      } else {
+        const formattedPhone = smsService.formatPhoneNumber(partnerPhone);
+        await smsService.sendPairingInviteSMS({
+          toPhone: formattedPhone,
+          fromName: userProfile.displayName,
+          pairingCode: innermost.pairingCode!,
+          message: inviteMessage
+        });
+        alert(`Invitation sent to ${partnerPhone}! They'll receive a text with a pairing code.`);
+      }
 
       // Update local state
       setInnermosts(prev => [...prev, innermost]);
       setPartnerEmail('');
+      setPartnerPhone('');
       setInviteMessage('');
       setCurrentPage('dashboard');
-      
-      alert(`Invitation sent to ${partnerEmail}! They'll receive an email with a pairing code.`);
     } catch (error: any) {
       alert(`Failed to create pairing: ${error.message}`);
+    }
+  };
+
+  // Handle mutual pairing between existing users
+  const handleMutualPairing = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userProfile || !firebaseUser) return;
+
+    try {
+      // Find the other user by email
+      const otherUser = await dataService.findUserByEmail(partnerEmail);
+      if (!otherUser) {
+        alert('User not found. They need to create an account first.');
+        return;
+      }
+
+      // Generate a 6-digit confirmation code
+      const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Send the code to both users
+      await emailService.sendMutualPairingCode(partnerEmail, confirmationCode, userProfile.displayName);
+      await emailService.sendMutualPairingCode(userProfile.email, confirmationCode, otherUser.displayName);
+      
+      // Store the pending pairing
+      sessionStorage.setItem('pendingPairing', JSON.stringify({
+        otherUserId: otherUser.id,
+        confirmationCode,
+        timestamp: Date.now()
+      }));
+      
+      setMutualCode(confirmationCode);
+      alert(`Confirmation code sent to both ${userProfile.email} and ${partnerEmail}. Both must enter the same code.`);
+    } catch (error: any) {
+      alert(`Failed to initiate pairing: ${error.message}`);
+    }
+  };
+
+  // Handle confirming mutual pairing
+  const handleConfirmMutualPairing = async () => {
+    if (!userProfile || !firebaseUser || !mutualCode) return;
+
+    try {
+      const pendingData = sessionStorage.getItem('pendingPairing');
+      if (!pendingData) {
+        alert('No pending pairing found. Please start a new pairing.');
+        return;
+      }
+      
+      const pending = JSON.parse(pendingData);
+      
+      // Check if code matches
+      if (pending.confirmationCode !== mutualCode) {
+        alert('Invalid confirmation code');
+        return;
+      }
+      
+      // Check if not expired (5 minutes)
+      if (Date.now() - pending.timestamp > 5 * 60 * 1000) {
+        alert('Confirmation code expired. Please start a new pairing.');
+        sessionStorage.removeItem('pendingPairing');
+        return;
+      }
+      
+      // Create the mutual pairing
+      const innermost = await dataService.createMutualPairing(
+        firebaseUser.uid,
+        pending.otherUserId,
+        mutualCode
+      );
+      
+      // Update local state
+      setInnermosts(prev => [...prev, innermost]);
+      sessionStorage.removeItem('pendingPairing');
+      setMutualCode('');
+      setShowMutualPairing(false);
+      setCurrentPage('dashboard');
+      
+      alert('Partnership created successfully!');
+    } catch (error: any) {
+      alert(`Failed to confirm pairing: ${error.message}`);
+    }
+  };
+
+  // Handle breaking a partnership
+  const handleBreakPartnership = async (innermostId: string) => {
+    if (!firebaseUser) return;
+    
+    if (!confirm('Are you sure you want to end this partnership? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await dataService.breakPartnership(innermostId, firebaseUser.uid);
+      
+      // Update local state
+      setInnermosts(prev => prev.filter(i => i.id !== innermostId));
+      if (selectedInnermost?.id === innermostId) {
+        setSelectedInnermost(null);
+        setCurrentWillingBox(null);
+        setCurrentPage('dashboard');
+      }
+      
+      alert('Partnership ended successfully.');
+    } catch (error: any) {
+      alert(`Failed to end partnership: ${error.message}`);
     }
   };
 
@@ -271,13 +392,15 @@ export default function FirebaseApp() {
                 {innermosts.map(innermost => (
                   <div
                     key={innermost.id}
-                    className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow"
-                    onClick={() => {
-                      setSelectedInnermost(innermost);
-                      setCurrentPage('innermost-detail');
-                    }}
+                    className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
                   >
-                    <div className="flex justify-between items-center">
+                    <div 
+                      className="flex justify-between items-center cursor-pointer"
+                      onClick={() => {
+                        setSelectedInnermost(innermost);
+                        setCurrentPage('innermost-detail');
+                      }}
+                    >
                       <div>
                         <h3 className="text-lg font-semibold text-gray-800">
                           Partnership with {innermost.partnerBEmail || innermost.partnerAEmail}
@@ -295,6 +418,19 @@ export default function FirebaseApp() {
                         {innermost.status === 'active' ? '🌳' : '🌱'}
                       </div>
                     </div>
+                    {innermost.status === 'active' && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBreakPartnership(innermost.id);
+                          }}
+                          className="text-red-600 hover:text-red-700 text-sm font-medium"
+                        >
+                          End Partnership
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 
@@ -320,42 +456,183 @@ export default function FirebaseApp() {
             </button>
             
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Invite Your Partner</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Create Partnership</h2>
               
-              <form onSubmit={handleCreatePairing}>
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-medium mb-2">
-                    Partner's Email
-                  </label>
-                  <input
-                    type="email"
-                    value={partnerEmail}
-                    onChange={(e) => setPartnerEmail(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                    required
-                  />
+              {/* Pairing Type Toggle */}
+              <div className="mb-6">
+                <div className="flex gap-2 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowMutualPairing(false)}
+                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
+                      !showMutualPairing
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Invite New User
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowMutualPairing(true)}
+                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
+                      showMutualPairing
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Pair with Existing User
+                  </button>
                 </div>
-                
-                <div className="mb-6">
-                  <label className="block text-gray-700 text-sm font-medium mb-2">
-                    Personal Message (Optional)
-                  </label>
-                  <textarea
-                    value={inviteMessage}
-                    onChange={(e) => setInviteMessage(e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                    placeholder="Add a personal note to your invitation..."
-                  />
+              </div>
+
+              {!showMutualPairing ? (
+                <form onSubmit={handleCreatePairing}>
+                  {/* Invite Method Toggle */}
+                  <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-medium mb-2">
+                      Invite Method
+                    </label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setInviteMethod('email')}
+                        className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
+                          inviteMethod === 'email'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        📧 Email
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setInviteMethod('sms')}
+                        className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
+                          inviteMethod === 'sms'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        📱 SMS/Text
+                      </button>
+                    </div>
+                  </div>
+
+                  {inviteMethod === 'email' ? (
+                    <div className="mb-4">
+                      <label className="block text-gray-700 text-sm font-medium mb-2">
+                        Partner's Email
+                      </label>
+                      <input
+                        type="email"
+                        value={partnerEmail}
+                        onChange={(e) => setPartnerEmail(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        required
+                      />
+                    </div>
+                  ) : (
+                    <div className="mb-4">
+                      <label className="block text-gray-700 text-sm font-medium mb-2">
+                        Partner's Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        value={partnerPhone}
+                        onChange={(e) => setPartnerPhone(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        placeholder="(555) 123-4567"
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">US phone numbers only</p>
+                    </div>
+                  )}
+                  
+                  <div className="mb-6">
+                    <label className="block text-gray-700 text-sm font-medium mb-2">
+                      Personal Message (Optional)
+                    </label>
+                    <textarea
+                      value={inviteMessage}
+                      onChange={(e) => setInviteMessage(e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                      placeholder="Add a personal note to your invitation..."
+                    />
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"
+                  >
+                    Send {inviteMethod === 'email' ? 'Email' : 'SMS'} Invitation
+                  </button>
+                </form>
+              ) : (
+                <div>
+                  <div className="mb-6">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                      <p className="text-sm text-blue-800">
+                        To pair with an existing user, both partners must:
+                      </p>
+                      <ol className="list-decimal list-inside text-sm text-blue-700 mt-2">
+                        <li>Enter each other's email</li>
+                        <li>Receive a confirmation code</li>
+                        <li>Enter the same code to confirm</li>
+                      </ol>
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="block text-gray-700 text-sm font-medium mb-2">
+                        Partner's Email (must be registered)
+                      </label>
+                      <input
+                        type="email"
+                        value={partnerEmail}
+                        onChange={(e) => setPartnerEmail(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        required
+                      />
+                    </div>
+
+                    {mutualCode ? (
+                      <div className="mb-4">
+                        <label className="block text-gray-700 text-sm font-medium mb-2">
+                          Enter Confirmation Code
+                        </label>
+                        <input
+                          type="text"
+                          value={mutualCode}
+                          onChange={(e) => setMutualCode(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                          placeholder="Enter 6-digit code"
+                          maxLength={6}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Both partners must enter the same code
+                        </p>
+                      </div>
+                    ) : null}
+
+                    {!mutualCode ? (
+                      <button
+                        onClick={handleMutualPairing}
+                        className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"
+                      >
+                        Send Confirmation Code
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleConfirmMutualPairing}
+                        className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"
+                      >
+                        Confirm Partnership
+                      </button>
+                    )}
+                  </div>
                 </div>
-                
-                <button
-                  type="submit"
-                  className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"
-                >
-                  Send Invitation
-                </button>
-              </form>
+              )}
             </div>
           </div>
         )}

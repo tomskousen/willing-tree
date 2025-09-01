@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as sgMail from '@sendgrid/mail';
+import twilio from 'twilio';
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -9,6 +10,16 @@ admin.initializeApp();
 const sendgridApiKey = functions.config().sendgrid?.api_key;
 if (sendgridApiKey) {
   sgMail.setApiKey(sendgridApiKey);
+}
+
+// Initialize Twilio
+const twilioAccountSid = functions.config().twilio?.account_sid;
+const twilioAuthToken = functions.config().twilio?.auth_token;
+const twilioPhoneNumber = functions.config().twilio?.phone_number;
+let twilioClient: twilio.Twilio | null = null;
+
+if (twilioAccountSid && twilioAuthToken) {
+  twilioClient = twilio(twilioAccountSid, twilioAuthToken);
 }
 
 // Send pairing invitation email
@@ -263,3 +274,133 @@ function getCurrentWeekNumber(): number {
   const oneWeek = 1000 * 60 * 60 * 24 * 7;
   return Math.floor(diff / oneWeek) + 1;
 }
+
+// SMS Functions using Twilio
+
+// Send pairing invitation via SMS
+export const sendPairingInviteSMS = functions.https.onCall(async (data, context) => {
+  const { toPhone, fromName, pairingCode, message, appUrl } = data;
+
+  if (!toPhone || !fromName || !pairingCode) {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing required fields');
+  }
+
+  const smsBody = `${fromName} invited you to The Willing Tree! 🌳
+${message ? `\nMessage: ${message}\n` : ''}
+Your pairing code: ${pairingCode}
+
+Join here: ${appUrl}?code=${pairingCode}`;
+
+  try {
+    if (twilioClient && twilioPhoneNumber) {
+      await twilioClient.messages.create({
+        body: smsBody,
+        from: twilioPhoneNumber,
+        to: toPhone
+      });
+    } else {
+      // Fallback: Store SMS request in Firestore for manual processing
+      await admin.firestore().collection('smsQueue').add({
+        to: toPhone,
+        body: smsBody,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        status: 'pending',
+        type: 'pairingInvite'
+      });
+      console.log('SMS queued for manual processing (Twilio not configured)');
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending SMS:', error);
+    throw new functions.https.HttpsError('internal', 'Failed to send SMS');
+  }
+});
+
+// Send mutual pairing code via SMS
+export const sendMutualPairingCode = functions.https.onCall(async (data, context) => {
+  const { toPhone, code, partnerName } = data;
+
+  if (!toPhone || !code || !partnerName) {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing required fields');
+  }
+
+  const smsBody = `Your Willing Tree confirmation code with ${partnerName}: ${code}
+Both partners must enter this code to connect.`;
+
+  try {
+    if (twilioClient && twilioPhoneNumber) {
+      await twilioClient.messages.create({
+        body: smsBody,
+        from: twilioPhoneNumber,
+        to: toPhone
+      });
+    } else {
+      await admin.firestore().collection('smsQueue').add({
+        to: toPhone,
+        body: smsBody,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        status: 'pending',
+        type: 'mutualPairing'
+      });
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending SMS:', error);
+    throw new functions.https.HttpsError('internal', 'Failed to send SMS');
+  }
+});
+
+// Send weekly reminder via SMS
+export const sendWeeklyReminderSMS = functions.https.onCall(async (data, context) => {
+  const { toPhone, partnerName, weekNumber } = data;
+
+  if (!toPhone || !partnerName) {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing required fields');
+  }
+
+  const smsBody = `Week ${weekNumber} on The Willing Tree! 🌳
+Time to select from ${partnerName}'s WishList.
+Login: ${functions.config().app?.url || 'https://willingtree.app'}`;
+
+  try {
+    if (twilioClient && twilioPhoneNumber) {
+      await twilioClient.messages.create({
+        body: smsBody,
+        from: twilioPhoneNumber,
+        to: toPhone
+      });
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending SMS reminder:', error);
+    return { success: false };
+  }
+});
+
+// Send game results via SMS
+export const sendGameResultsSMS = functions.https.onCall(async (data, context) => {
+  const { toPhone, score, correctGuesses } = data;
+
+  if (!toPhone) {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing phone number');
+  }
+
+  const smsBody = `Willing Tree Results! 🎯
+You scored ${score} points!
+Correct guesses: ${correctGuesses}
+View details: ${functions.config().app?.url || 'https://willingtree.app'}`;
+
+  try {
+    if (twilioClient && twilioPhoneNumber) {
+      await twilioClient.messages.create({
+        body: smsBody,
+        from: twilioPhoneNumber,
+        to: toPhone
+      });
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending SMS results:', error);
+    return { success: false };
+  }
+});

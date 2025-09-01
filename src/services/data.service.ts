@@ -61,6 +61,103 @@ export interface WillingBox {
 }
 
 class DataService {
+  // Create mutual pairing between existing users
+  async createMutualPairing(userId1: string, userId2: string, confirmationCode: string): Promise<Innermost> {
+    try {
+      // Verify both users exist
+      const user1Doc = await getDoc(doc(db, 'users', userId1));
+      const user2Doc = await getDoc(doc(db, 'users', userId2));
+      
+      if (!user1Doc.exists() || !user2Doc.exists()) {
+        throw new Error('One or both users not found');
+      }
+      
+      const user1Data = user1Doc.data();
+      const user2Data = user2Doc.data();
+      
+      // Create the innermost
+      const innermost: Omit<Innermost, 'id'> = {
+        partnerA: userId1,
+        partnerB: userId2,
+        partnerAEmail: user1Data.email,
+        partnerBEmail: user2Data.email,
+        status: 'active',
+        pairingCode: confirmationCode,
+        createdAt: serverTimestamp() as any
+      };
+      
+      const docRef = await addDoc(collection(db, 'innermosts'), innermost);
+      
+      // Update both users' activeInnermosts
+      await updateDoc(doc(db, 'users', userId1), {
+        activeInnermosts: arrayUnion(docRef.id)
+      });
+      await updateDoc(doc(db, 'users', userId2), {
+        activeInnermosts: arrayUnion(docRef.id)
+      });
+      
+      // Create initial WillingBox
+      await this.createWillingBox(docRef.id, userId1, userId2);
+      
+      return { ...innermost, id: docRef.id } as Innermost;
+    } catch (error: any) {
+      throw new Error(`Failed to create mutual pairing: ${error.message}`);
+    }
+  }
+  
+  // Break/end a partnership
+  async breakPartnership(innermostId: string, userId: string): Promise<void> {
+    try {
+      // Get the innermost
+      const innermostDoc = await getDoc(doc(db, 'innermosts', innermostId));
+      if (!innermostDoc.exists()) {
+        throw new Error('Partnership not found');
+      }
+      
+      const innermostData = innermostDoc.data();
+      
+      // Verify user is part of this innermost
+      if (innermostData.partnerA !== userId && innermostData.partnerB !== userId) {
+        throw new Error('You are not part of this partnership');
+      }
+      
+      // Update innermost status to 'ended'
+      await updateDoc(doc(db, 'innermosts', innermostId), {
+        status: 'ended',
+        endedAt: serverTimestamp(),
+        endedBy: userId
+      });
+      
+      // Remove from both users' activeInnermosts
+      await updateDoc(doc(db, 'users', innermostData.partnerA), {
+        activeInnermosts: arrayRemove(innermostId)
+      });
+      await updateDoc(doc(db, 'users', innermostData.partnerB), {
+        activeInnermosts: arrayRemove(innermostId)
+      });
+    } catch (error: any) {
+      throw new Error(`Failed to break partnership: ${error.message}`);
+    }
+  }
+  
+  // Find user by email (for mutual pairing)
+  async findUserByEmail(email: string): Promise<any | null> {
+    try {
+      const q = query(collection(db, 'users'), where('email', '==', email));
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        return null;
+      }
+      
+      const userDoc = snapshot.docs[0];
+      return { id: userDoc.id, ...userDoc.data() };
+    } catch (error: any) {
+      console.error('Error finding user:', error);
+      return null;
+    }
+  }
+  
   // Create a new Innermost (partnership)
   async createInnermost(userId: string, partnerEmail: string, userName: string): Promise<Innermost> {
     try {
