@@ -80,12 +80,16 @@ export class ScoringEngine {
   }
 
   /**
-   * Validate that exactly 2 wants are marked as Most Wanted
+   * Validate wishlist has exactly 12 items with 2 marked as Most Wanted
    */
-  static validateMostWanted(wants: Want[]): boolean {
-    const mostWantedCount = wants.filter(w => w.isMostWanted).length;
+  static validateWishlist(wishes: Want[]): boolean {
+    if (wishes.length !== 12) return false;
+    const mostWantedCount = wishes.filter(w => w.isMostWanted).length;
     return mostWantedCount === 2;
   }
+  
+  // Legacy support
+  static validateMostWanted = ScoringEngine.validateWishlist;
 
   /**
    * Validate that willing list has exactly 5 items with priorities 1-5

@@ -35,32 +35,52 @@ export interface PairingInvitation {
   expiresAt: Date;
 }
 
-// Wants/Needs and Willing Lists
-export interface Want {
+// Wishes and Willing Lists - NEW GAME LOGIC
+export interface Wish {
   id: string;
   text: string;
   category: 'communication' | 'affection' | 'household' | 'time' | 'personal';
-  isMostWanted: boolean;
-  order: number;
+  isMostWanted: boolean;  // Max 2 per list
+  order: number;  // 1-12
   createdBy: string;
 }
+
+// Backward compatibility alias
+export type Want = Wish;
 
 export interface WillingBox {
   id: string;
   innermostId: string;
   partnerA: string;
   partnerB: string;
-  wants: Want[];
-  // Privacy: Willing lists are NEVER shared between partners
-  partnerAWilling: WillingItem[];
-  partnerBWilling: WillingItem[];
+  
+  // NEW: Separate wishlists for each partner (12 items each)
+  // These ARE visible to the other partner
+  partnerAWishlist: Wish[];  // What A wishes B would do
+  partnerBWishlist: Wish[];  // What B wishes A would do
+  
+  // UNCHANGED: Willing selections remain private
+  // A selects from B's wishlist, B selects from A's wishlist
+  partnerAWilling: WillingItem[];  // A's selections from B's wishlist
+  partnerBWilling: WillingItem[];  // B's selections from A's wishlist
+  
+  weekNumber: number;
+  status: 'creating_wishes' | 'selecting_willing' | 'guessing' | 'revealed';
   lockedAt?: Date;
   isLocked: boolean;
+  
+  // Legacy support
+  wants?: Wish[];
 }
 
 export interface WillingItem {
-  wantId: string;
-  effort: string;
+  wishId: string;  // References partner's wish
+  priority: number;  // 1-5 (most to least willing)
+  effortLevel?: 'easy' | 'moderate' | 'challenging';
+  
+  // Legacy support
+  wantId?: string;
+  effort?: string;
 }
 
 // Scoring System

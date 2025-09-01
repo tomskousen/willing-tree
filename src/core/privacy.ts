@@ -9,31 +9,46 @@ import { Want, WillingBox, User } from '../types';
 
 export class PrivacyEngine {
   /**
-   * Filter wants that a user can see (only their partner's wants for selection)
+   * NEW GAME LOGIC: Get partner's wishlist (VISIBLE for selection)
+   * Partner A sees Partner B's wishlist to select what they're willing to do
+   * Partner B sees Partner A's wishlist to select what they're willing to do
    */
-  static getVisibleWants(
+  static getPartnerWishlist(
     willingBox: WillingBox,
     viewerUserId: string,
     innermost: { partnerA: string; partnerB: string }
   ): Want[] {
     const isPartnerA = viewerUserId === innermost.partnerA;
     
-    // Partner A sees Partner B's wants for selection
-    // Partner B sees Partner A's wants for selection
-    return isPartnerA ? willingBox.partnerBWants : willingBox.partnerAWants;
+    // A sees B's wishlist, B sees A's wishlist
+    const wishlist = isPartnerA 
+      ? (willingBox.partnerBWishlist || willingBox.partnerBWants || [])
+      : (willingBox.partnerAWishlist || willingBox.partnerAWants || []);
+    
+    return wishlist;
   }
 
   /**
-   * Get user's own wants (for editing/viewing)
+   * Get user's own wishlist (for creating/editing)
    */
-  static getOwnWants(
+  static getOwnWishlist(
     willingBox: WillingBox,
     userId: string,
     innermost: { partnerA: string; partnerB: string }
   ): Want[] {
     const isPartnerA = userId === innermost.partnerA;
-    return isPartnerA ? willingBox.partnerAWants : willingBox.partnerBWants;
+    
+    // Return own wishlist
+    const wishlist = isPartnerA 
+      ? (willingBox.partnerAWishlist || willingBox.partnerAWants || [])
+      : (willingBox.partnerBWishlist || willingBox.partnerBWants || []);
+    
+    return wishlist;
   }
+  
+  // Legacy support
+  static getVisibleWants = PrivacyEngine.getPartnerWishlist;
+  static getOwnWants = PrivacyEngine.getOwnWishlist;
 
   /**
    * CRITICAL: Never expose willing lists to partners
