@@ -22,7 +22,7 @@ interface Wish {
 interface WillingSelection {
   id: string;
   wishId: string;
-  priority: number; // 1-5, where 1 is highest priority (3 bonus points)
+  priority: number; // 1-3, where 1 is highest priority (double points)
   createdAt: Date;
 }
 
@@ -703,7 +703,7 @@ export default function MinimalApp() {
                   <div>
                     <h3 className="text-yellow-900 font-semibold mb-1">Seed Awaiting Sunlight</h3>
                     <p className="text-yellow-800 text-sm">
-                      Your partner needs to join and accept the invitation before your relationship garden can begin growing.
+                      Your partner needs to join and accept the invitation before your Willing Tree can begin growing.
                     </p>
                   </div>
                 </div>
@@ -726,7 +726,7 @@ export default function MinimalApp() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center mt-0.5">4</span>
-                    You both create your wants lists (up to 20 items each)
+                    You both create your WishLists (up to 12 items each)
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center mt-0.5">5</span>
@@ -790,10 +790,10 @@ export default function MinimalApp() {
                 <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                   <div className="flex items-center gap-3 mb-3">
                     <span className="text-green-600 text-xl">🌳</span>
-                    <h3 className="font-semibold text-green-900">Garden is Growing!</h3>
+                    <h3 className="font-semibold text-green-900">Tree is Growing!</h3>
                   </div>
                   <p className="text-green-800 text-sm mb-4">
-                    Beautiful! Your partner has joined the garden. After planting wishes, you can begin weekly tending.
+                    Beautiful! Your partner has joined the tree. After planting wishes, you can begin weekly tending.
                   </p>
                   <div className="flex gap-2">
                     <button
@@ -868,7 +868,7 @@ export default function MinimalApp() {
                   <ul className="text-left space-y-2 text-sm text-gray-600">
                     <li className="flex items-center gap-2">
                       <span className="text-green-600">✓</span>
-                      1 active relationship garden
+                      1 active Willing Tree
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="text-green-600">✓</span>
@@ -906,7 +906,7 @@ export default function MinimalApp() {
                   <ul className="text-left space-y-2 text-sm">
                     <li className="flex items-center gap-2">
                       <span className="text-green-600">✓</span>
-                      <strong>Up to 3 active relationship gardens</strong>
+                      <strong>Up to 3 active Willing Trees</strong>
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="text-green-600">✓</span>
@@ -944,7 +944,7 @@ export default function MinimalApp() {
                   <span className="text-xl">🌳</span>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-yellow-900 mb-1">Multiple Relationship Gardens</h4>
+                  <h4 className="font-semibold text-yellow-900 mb-1">Multiple Relationship Trees</h4>
                   <p className="text-gray-600 text-sm">Nurture up to 3 different relationships simultaneously. Perfect for couples with multiple close relationships they want to strengthen - whether romantic partners, family, or close friends.</p>
                 </div>
               </div>
@@ -1187,7 +1187,7 @@ export default function MinimalApp() {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <span className="text-green-600">✅</span>
-                <span className="text-gray-700">Up to 3 active relationship gardens</span>
+                <span className="text-gray-700">Up to 3 active Willing Trees</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-green-600">✅</span>
@@ -1226,7 +1226,7 @@ export default function MinimalApp() {
               onClick={() => setCurrentPage('create-innermost')}
               className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors"
             >
-              🌱 Plant New Garden
+              🌱 Plant New Tree
             </button>
           </div>
 
@@ -1252,7 +1252,7 @@ export default function MinimalApp() {
               onClick={() => setCurrentPage('innermost-detail')}
               className="text-gray-500 hover:text-gray-700"
             >
-              ← Back to Garden
+              ← Back to Tree
             </button>
           </div>
         </div>
@@ -1265,7 +1265,7 @@ export default function MinimalApp() {
               <span className="text-3xl">🌿</span>
             </div>
             <h2 className="text-3xl font-bold text-yellow-900 mb-2">Plant Your Wishes</h2>
-            <p className="text-gray-600">Create your garden of relationship hopes. Select up to 20 wishes and mark your 3 most cherished.</p>
+            <p className="text-gray-600">Create your WishList to grow this Tree. These are hopes for how your relationship grows. Select 12 wishes and mark 1 as Most Wanted.</p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
@@ -1274,9 +1274,9 @@ export default function MinimalApp() {
               <div className="bg-green-50 p-4 border-b border-green-200">
                 <h3 className="text-lg font-semibold text-green-900 flex items-center gap-2">
                   <span>🌱</span>
-                  Your Garden Wishes ({currentWishes.length}/20)
+                  Your WishList to Grow this Tree ({currentWishes.length}/12)
                 </h3>
-                <p className="text-sm text-green-700">These are your relationship growth hopes</p>
+                <p className="text-sm text-green-700">These are hopes for how your relationship grows</p>
               </div>
               
               <div className="p-4">
@@ -1287,7 +1287,7 @@ export default function MinimalApp() {
                   const wishText = formData.get('customWish') as string;
                   const category = formData.get('category') as string;
                   
-                  if (wishText.trim() && currentWishes.length < 20) {
+                  if (wishText.trim() && currentWishes.length < 12) {
                     const newWish: Wish = {
                       id: Date.now().toString(),
                       text: wishText.trim(),
@@ -1323,7 +1323,7 @@ export default function MinimalApp() {
                       </select>
                       <button
                         type="submit"
-                        disabled={currentWishes.length >= 20}
+                        disabled={currentWishes.length >= 12}
                         className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 disabled:bg-gray-400"
                       >
                         Add
@@ -1405,13 +1405,13 @@ export default function MinimalApp() {
                         i.id === selectedInnermost.id ? updatedInnermost : i
                       ));
                       setSelectedInnermost(updatedInnermost);
-                      alert(`🌱 Garden wishes planted successfully!\n\n• ${currentWishes.length} wishes added\n• ${currentWishes.filter(w => w.isMostCherished).length} marked as Most Cherished\n\nYour partner can now start their weekly guessing game!`);
+                      alert(`🌱 Tree wishes planted successfully!\n\n• ${currentWishes.length} wishes added\n• ${currentWishes.filter(w => w.isMostCherished).length} marked as Most Cherished\n\nYour partner can now start their weekly guessing game!`);
                       setCurrentPage('innermost-detail');
                     }}
                     disabled={currentWishes.length === 0}
                     className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 disabled:bg-gray-400 transition-colors"
                   >
-                    🌳 Save Garden Wishes ({currentWishes.length})
+                    🌳 Save Tree Wishes ({currentWishes.length})
                   </button>
                   
                   <div className="mt-2 text-center">
@@ -1457,7 +1457,7 @@ export default function MinimalApp() {
                           <button
                             key={index}
                             onClick={() => {
-                              if (!alreadyAdded && currentWishes.length < 20) {
+                              if (!alreadyAdded && currentWishes.length < 12) {
                                 const newWish: Wish = {
                                   id: Date.now().toString() + index,
                                   text: wishText,
@@ -1468,11 +1468,11 @@ export default function MinimalApp() {
                                 setCurrentWishes(prev => [...prev, newWish]);
                               }
                             }}
-                            disabled={alreadyAdded || currentWishes.length >= 20}
+                            disabled={alreadyAdded || currentWishes.length >= 12}
                             className={`w-full text-left p-2 rounded text-sm transition-colors ${
                               alreadyAdded
                                 ? 'bg-green-50 text-green-700 border border-green-200'
-                                : currentWishes.length >= 20
+                                : currentWishes.length >= 12
                                 ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
                                 : 'bg-gray-50 hover:bg-green-50 text-gray-700 hover:text-green-700'
                             }`}
@@ -1522,7 +1522,7 @@ export default function MinimalApp() {
               onClick={() => setCurrentPage('innermost-detail')}
               className="text-gray-500 hover:text-gray-700"
             >
-              ← Back to Garden
+              ← Back to Tree
             </button>
           </div>
         </div>
@@ -1534,7 +1534,7 @@ export default function MinimalApp() {
             <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl">🌱</span>
             </div>
-            <h2 className="text-3xl font-bold text-yellow-900 mb-2">Weekly Garden Tending</h2>
+            <h2 className="text-3xl font-bold text-yellow-900 mb-2">Weekly Tree Tending</h2>
             <p className="text-gray-600">Week {currentWeek}: Choose which of your partner's wishes you're willing to nurture this week</p>
           </div>
 
@@ -1555,7 +1555,7 @@ export default function MinimalApp() {
             <div className="bg-purple-50 p-4 border-b border-purple-200">
               <h3 className="text-lg font-semibold text-purple-900 flex items-center gap-2">
                 <span>🌿</span>
-                {selectedInnermost.partnerEmail.split('@')[0]}'s Garden Wishes
+                {selectedInnermost.partnerEmail.split('@')[0]}'s Tree Wishes
               </h3>
               <p className="text-sm text-purple-700">
                 Select the ones you're willing to work on this week • 
@@ -1619,7 +1619,7 @@ export default function MinimalApp() {
               {partnerWishes.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   <p className="text-sm">Your partner hasn't planted their wishes yet.</p>
-                  <p className="text-xs">Ask them to complete their garden first!</p>
+                  <p className="text-xs">Ask them to complete their tree first!</p>
                 </div>
               )}
             </div>
@@ -1740,7 +1740,7 @@ export default function MinimalApp() {
     const getPartnerWillingDemo = (): string[] => {
       // Partner "chose" to work on some wishes for demo - including priority items
       const allWishIds = userWishes.map(w => w.id);
-      const selectedCount = Math.min(Math.floor(allWishIds.length * 0.6), 5);
+      const selectedCount = Math.min(Math.floor(allWishIds.length * 0.6), 3);
       return allWishIds.slice(0, selectedCount);
     };
     
@@ -1752,7 +1752,7 @@ export default function MinimalApp() {
         return selectedWishIds.map((wishId, index) => ({
           id: `partner-${Date.now()}-${index}`,
           wishId,
-          priority: index + 1, // 1, 2, 3, 4, 5
+          priority: index + 1, // 1, 2, 3
           createdAt: new Date()
         }));
       }
@@ -1807,7 +1807,7 @@ export default function MinimalApp() {
               <div className="bg-green-50 p-4 border-b-2 border-yellow-800">
                 <h3 className="text-lg font-semibold text-green-900 flex items-center gap-2">
                   <span>🤔</span>
-                  Your Garden Wishes - Which did your partner choose?
+                  Your Tree Wishes - Which did your partner choose?
                 </h3>
                 <p className="text-sm text-green-700">
                   Earn <strong>1 point</strong> for each correct guess • 
@@ -1872,7 +1872,7 @@ export default function MinimalApp() {
                 {userWishes.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     <p className="text-sm">You haven't planted your wishes yet.</p>
-                    <p className="text-xs">Complete your garden first!</p>
+                    <p className="text-xs">Complete your tree first!</p>
                   </div>
                 )}
               </div>
@@ -2136,7 +2136,7 @@ export default function MinimalApp() {
               onClick={() => setCurrentPage('innermost-detail')}
               className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors"
             >
-              🌳 Return to Garden
+              🌳 Return to Tree
             </button>
             
             <button
@@ -2191,7 +2191,7 @@ export default function MinimalApp() {
               onClick={() => setCurrentPage('innermost-detail')}
               className="text-gray-500 hover:text-gray-700"
             >
-              ← Back to Garden
+              ← Back to Tree
             </button>
           </div>
         </div>
@@ -2205,8 +2205,8 @@ export default function MinimalApp() {
             </div>
             <h2 className="text-3xl font-bold text-yellow-900 mb-2">Select Your Willing List</h2>
             <p className="text-gray-600 text-lg">
-              Choose 5 items from your partner's wishes that you're willing to work on. 
-              <strong>Prioritize them 1-5</strong> - Priority #1 gets you 3 bonus points if they select it!
+              Choose 3 items from your partner's WishList that you're willing to work on. 
+              <strong>Prioritize them 1-3</strong> - Priority #1 gets you double points if they guess it!
             </p>
           </div>
 
@@ -2216,10 +2216,9 @@ export default function MinimalApp() {
               <div>
                 <h3 className="font-semibold text-purple-900 mb-1">Priority Bonus System</h3>
                 <ul className="text-purple-800 text-sm space-y-1">
-                  <li>• <strong>Priority 1:</strong> +3 bonus points if partner selects this</li>
-                  <li>• <strong>Priority 2:</strong> +2 bonus points if partner selects this</li>
-                  <li>• <strong>Priority 3:</strong> +1 bonus point if partner selects this</li>
-                  <li>• <strong>Priority 4-5:</strong> Standard points (2pts if guessed correctly)</li>
+                  <li>• <strong>Priority 1:</strong> Double points (4pts) if partner guesses this</li>
+                  <li>• <strong>Priority 2:</strong> Standard points (2pts) if partner guesses this</li>
+                  <li>• <strong>Priority 3:</strong> Standard points (2pts) if partner guesses this</li>
                 </ul>
               </div>
             </div>
@@ -2229,11 +2228,11 @@ export default function MinimalApp() {
             <div className="bg-purple-50 p-4 border-b-2 border-yellow-800">
               <h3 className="text-lg font-semibold text-purple-900 flex items-center gap-2">
                 <span>🌱</span>
-                Partner's Garden Wishes
+                Partner's WishList
               </h3>
               <p className="text-sm text-purple-700">
-                Select exactly 5 items and assign priorities • 
-                <span className="font-semibold">{currentWillingSelections.length}/5</span> selected
+                Select exactly 3 items and assign priorities • 
+                <span className="font-semibold">{currentWillingSelections.length}/3</span> selected
               </p>
             </div>
             
@@ -2256,7 +2255,7 @@ export default function MinimalApp() {
                         if (isSelected) {
                           // Remove selection
                           setCurrentWillingSelections(prev => prev.filter(s => s.wishId !== wish.id));
-                        } else if (currentWillingSelections.length < 5) {
+                        } else if (currentWillingSelections.length < 3) {
                           // Add selection with next available priority
                           const nextPriority = currentWillingSelections.length + 1;
                           const newSelection: WillingSelection = {
@@ -2297,7 +2296,7 @@ export default function MinimalApp() {
                           
                           {isSelected && (
                             <div className="mt-2 flex gap-1">
-                              {[1,2,3,4,5].map(p => (
+                              {[1,2,3].map(p => (
                                 <button
                                   key={p}
                                   onClick={(e) => {
@@ -2336,8 +2335,8 @@ export default function MinimalApp() {
           <div className="mt-8 flex gap-4">
             <button
               onClick={() => {
-                if (currentWillingSelections.length !== 5) {
-                  alert(`🎯 Please select exactly 5 items! You currently have ${currentWillingSelections.length} selected.`);
+                if (currentWillingSelections.length !== 3) {
+                  alert(`🎯 Please select exactly 3 items! You currently have ${currentWillingSelections.length} selected.`);
                   return;
                 }
                 
@@ -2354,10 +2353,10 @@ export default function MinimalApp() {
                 alert(`🎯 Willing selections saved!\n\n• ${currentWillingSelections.length} items selected\n• Priority 1: ${partnerWishes.find(w => w.id === currentWillingSelections.find(s => s.priority === 1)?.wishId)?.text || 'None'}\n\nReady for weekly games!`);
                 setCurrentPage('innermost-detail');
               }}
-              disabled={currentWillingSelections.length !== 5}
+              disabled={currentWillingSelections.length !== 3}
               className="flex-1 bg-purple-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-purple-700 disabled:bg-gray-400 transition-colors text-lg"
             >
-              🌳 Save Willing List ({currentWillingSelections.length}/5)
+              🌳 Save Willing List ({currentWillingSelections.length}/3)
             </button>
             
             <button
@@ -2490,7 +2489,7 @@ export default function MinimalApp() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-yellow-900">Email Notifications</p>
-                    <p className="text-sm text-gray-600">Receive garden updates via email</p>
+                    <p className="text-sm text-gray-600">Receive tree updates via email</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -2525,8 +2524,8 @@ export default function MinimalApp() {
                 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-yellow-900">Weekly Garden Reminders</p>
-                    <p className="text-sm text-gray-600">Reminders to tend your relationship garden</p>
+                    <p className="font-medium text-yellow-900">Weekly Tree Reminders</p>
+                    <p className="text-sm text-gray-600">Reminders to tend your Willing Tree</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -2572,7 +2571,7 @@ export default function MinimalApp() {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="font-semibold text-red-900">Current Plan: Free (Donation-Based)</p>
-                    <p className="text-sm text-red-700">1 active relationship garden</p>
+                    <p className="text-sm text-red-700">1 active Willing Tree</p>
                   </div>
                   <div className="text-right">
                     <p className="text-xl font-bold text-red-900">Pay What You Feel</p>
@@ -2592,10 +2591,10 @@ export default function MinimalApp() {
               <div className="space-y-3">
                 <p className="text-sm font-medium text-yellow-900">Premium Features ($1/month):</p>
                 <ul className="text-sm text-gray-600 space-y-1 ml-4">
-                  <li>• Up to 3 active relationship gardens</li>
+                  <li>• Up to 3 active Willing Trees</li>
                   <li>• Advanced growth analytics & insights</li>
                   <li>• Priority customer support</li>
-                  <li>• Export your garden data</li>
+                  <li>• Export your tree data</li>
                   <li>• Custom wish categories</li>
                 </ul>
                 <div className="mt-3 p-2 bg-yellow-50 border border-yellow-600 rounded">
@@ -2637,7 +2636,7 @@ export default function MinimalApp() {
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="font-medium text-yellow-900">Export My Data</p>
-                    <p className="text-sm text-gray-600">Download all your garden data</p>
+                    <p className="text-sm text-gray-600">Download all your tree data</p>
                   </div>
                   <button
                     onClick={() => {
@@ -2646,18 +2645,18 @@ export default function MinimalApp() {
                         innermosts,
                         settings,
                         exportDate: new Date().toISOString(),
-                        note: 'This is your The Willing Tree garden data export'
+                        note: 'This is your The Willing Tree tree data export'
                       };
                       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
                       const url = URL.createObjectURL(blob);
                       const a = document.createElement('a');
                       a.href = url;
-                      a.download = `willing-box-garden-${user?.name?.replace(/\\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`;
+                      a.download = `willing-box-tree-${user?.name?.replace(/\\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`;
                       document.body.appendChild(a);
                       a.click();
                       document.body.removeChild(a);
                       URL.revokeObjectURL(url);
-                      alert('🌿 Garden data exported successfully!');
+                      alert('🌿 Tree data exported successfully!');
                     }}
                     className="text-green-600 hover:text-green-700 text-sm font-medium"
                   >
@@ -2701,11 +2700,11 @@ export default function MinimalApp() {
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="font-medium text-red-900">Delete Account</p>
-                      <p className="text-sm text-red-700">Permanently delete your garden and all data</p>
+                      <p className="text-sm text-red-700">Permanently delete your tree and all data</p>
                     </div>
                     <button
                       onClick={() => {
-                        const confirm = window.confirm('🚨 Are you absolutely sure?\\n\\nThis will permanently delete:\\n• Your account\\n• All relationship gardens\\n• All growth data\\n• All settings\\n\\nThis action cannot be undone!');
+                        const confirm = window.confirm('🚨 Are you absolutely sure?\\n\\nThis will permanently delete:\\n• Your account\\n• All Willing Trees\\n• All growth data\\n• All settings\\n\\nThis action cannot be undone!');
                         if (confirm) {
                           alert('🌿 In a real app, this would:\\n\\n• Delete all user data from servers\\n• Cancel subscriptions\\n• Send confirmation email\\n• Redirect to goodbye page\\n\\nFor demo: Account deletion confirmed.');
                           setUser(null);
@@ -2826,7 +2825,7 @@ export default function MinimalApp() {
                         }}
                         className="bg-green-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
                       >
-                        🌳 View Garden
+                        🌳 View Tree
                       </button>
                       
                       {!hasWishes && (
@@ -2872,7 +2871,7 @@ export default function MinimalApp() {
             <p className="text-gray-600 mb-4">
               {innermosts.length === 0 
                 ? 'Connect with someone special and begin your journey of intentional relationship growth.' 
-                : 'Cultivate more relationships! Premium users can tend up to 3 growing gardens.'
+                : 'Cultivate more relationships! Premium users can tend up to 3 growing trees.'
               }
             </p>
             <button
@@ -2880,14 +2879,14 @@ export default function MinimalApp() {
               className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors"
               disabled={innermosts.length >= 3}
             >
-              {innermosts.length >= 3 ? '🌳 Garden Full (3)' : `Plant Seed ${innermosts.length > 0 ? `(${innermosts.length}/3)` : ''}`}
+              {innermosts.length >= 3 ? '🌳 Tree Full (3)' : `Plant Seed ${innermosts.length > 0 ? `(${innermosts.length}/3)` : ''}`}
             </button>
           </div>
 
           <div className="bg-white rounded-lg p-6 shadow-sm border">
             <h3 className="text-lg font-semibold text-yellow-900 mb-3">📋 How It Works</h3>
             <ul className="text-gray-600 space-y-2 text-sm">
-              <li>• Create wants list (up to 20 items)</li>
+              <li>• Create WishList (up to 12 items)</li>
               <li>• Select what you're willing to work on</li>
               <li>• Play weekly guessing games</li>
               <li>• Score points: 1pt guesser, 2pt performer</li>
