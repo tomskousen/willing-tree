@@ -1244,7 +1244,7 @@ export default function MinimalApp() {
     const suggestions = getWishSuggestions(user?.gender, user?.age);
     
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen" style={{background: 'linear-gradient(135deg, #8B7355 0%, #6B5B45 100%)'}}>  
         <div className="bg-white shadow-sm border-b">
           <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
             <h1 className="text-xl font-bold text-green-800">🌳 The Willing Tree</h1>
@@ -1344,11 +1344,7 @@ export default function MinimalApp() {
                         <div className="flex-1">
                           <p className="text-sm text-yellow-900">{wish.text}</p>
                           <div className="flex items-center gap-2 mt-1">
-                            {wish.isMostCherished && (
-                              <span className="text-xs bg-yellow-100 px-2 py-1 rounded text-yellow-800 flex items-center gap-1">
-                                ⭐ Most Cherished
-                              </span>
-                            )}
+                            {/* Most Wanted hidden from partner's view */}
                           </div>
                         </div>
                         <div className="flex flex-col gap-1">
@@ -1544,8 +1540,8 @@ export default function MinimalApp() {
               <div>
                 <h3 className="font-semibold text-green-900 mb-1">Your Privacy is Protected</h3>
                 <p className="text-green-800 text-sm">
-                  Your partner will <strong>never see</strong> which wishes you didn't select. 
-                  Only the ones you choose to work on will be part of the guessing game. This preserves your autonomy and prevents any pressure.
+                  Your partner will <strong>never see</strong> your WillingList selections. 
+                  They must guess which items from their own WishList you chose to work on. Only correct guesses earn points. This preserves privacy and creates fun surprises.
                 </p>
               </div>
             </div>
@@ -1567,7 +1563,7 @@ export default function MinimalApp() {
               <div className="grid gap-4">
                 {partnerWishes.map((wish: Wish) => {
                   const isSelected = willingSelections[wish.id] || false;
-                  const pointValue = wish.isMostCherished ? 4 : 2; // Double for cherished (2pts base * 2)
+                  // Points calculated during guessing, not selection
                   
                   return (
                     <div
@@ -1594,13 +1590,9 @@ export default function MinimalApp() {
                             }`}>
                               {isSelected && <span className="text-xs">✓</span>}
                             </div>
-                            {wish.isMostCherished && (
-                              <span className="text-xs bg-yellow-100 px-2 py-1 rounded text-yellow-800 flex items-center gap-1">
-                                ⭐ Most Cherished
-                              </span>
-                            )}
+                            {/* Most Wanted status hidden from partner */}
                             <span className="text-xs bg-purple-100 px-2 py-1 rounded text-purple-700 font-medium">
-                              {pointValue} pts if guessed
+                              Points earned if guessed correctly
                             </span>
                           </div>
                           <p className="text-yellow-900 font-medium">{wish.text}</p>
@@ -1693,11 +1685,10 @@ export default function MinimalApp() {
                   startDate: new Date(),
                   endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                   isActive: true,
-                  userWillingSelections: selectedWishIds.map(wishId => ({
+                  userWillingSelections: selectedWishIds.map((wishId, index) => ({
                     id: Date.now().toString() + wishId,
                     wishId,
-                    willingToWork: true,
-                    weekNumber: currentWeek,
+                    priority: index + 1, // 1, 2, 3
                     createdAt: new Date()
                   })),
                   partnerWillingSelections: [],
@@ -1820,7 +1811,7 @@ export default function MinimalApp() {
                 <div className="grid gap-4">
                   {userWishes.map((wish) => {
                     const isGuessed = userGuesses[wish.id] || false;
-                    const pointValue = wish.isMostCherished ? 2 : 1;
+                    const pointValue = wish.isMostCherished ? 3 : 1; // Triple for Most Wanted
                     
                     return (
                       <div
@@ -1853,7 +1844,7 @@ export default function MinimalApp() {
                                 </span>
                               )}
                               <span className="text-xs bg-green-100 px-2 py-1 rounded text-green-700 font-medium">
-                                {pointValue} pt{pointValue > 1 ? 's' : ''} if correct
+                                {pointValue} pt{pointValue > 1 ? 's' : ''} for guessing
                               </span>
                             </div>
                             <p className="text-yellow-900 font-medium">{wish.text}</p>
@@ -1886,8 +1877,8 @@ export default function MinimalApp() {
                     .filter(([_, guessed]) => guessed)
                     .map(([wishId, _]) => wishId);
                   
-                  // Simulate partner's actual selections for demo
-                  const partnerActualSelections = getPartnerWillingDemo();
+                  // Get partner's actual selections from the innermost data
+                  const partnerActualSelections = selectedInnermost?.partnerWillingSelections?.map(s => s.wishId) || [];
                   
                   // Calculate results with priority bonuses
                   let totalPoints = 0;
@@ -1895,19 +1886,19 @@ export default function MinimalApp() {
                     const wish = userWishes.find(w => w.id === wishId)!;
                     const wasCorrect = partnerActualSelections.includes(wishId);
                     
-                    // Base points
-                    let points = wasCorrect ? (wish.isMostCherished ? 2 : 1) : 0;
+                    // Base points: 1pt for correct guess, triple if Most Wanted
+                    let points = wasCorrect ? (wish.isMostCherished ? 3 : 1) : 0;
                     
                     // Priority bonus: if partner has this in their willing selections
-                    const partnerWillingSelections = getPartnerWillingSelectionsDemo();
-                    if (wasCorrect && partnerWillingSelections) {
+                    const partnerWillingSelections = selectedInnermost?.partnerWillingSelections || [];
+                    if (wasCorrect && partnerWillingSelections.length > 0) {
                       const partnerSelection = partnerWillingSelections.find(s => s.wishId === wishId);
                       if (partnerSelection) {
-                        // Add priority bonus (Priority 1 = +3, Priority 2 = +2, Priority 3 = +1)
-                        const priorityBonus = partnerSelection.priority === 1 ? 3 : 
-                                            partnerSelection.priority === 2 ? 2 : 
-                                            partnerSelection.priority === 3 ? 1 : 0;
-                        points += priorityBonus;
+                        // Double points if Priority 1 (partner gets 2pts base, x2 = 4pts)
+                        // But for guessing, you get the bonus for guessing their top priority
+                        if (partnerSelection.priority === 1) {
+                          points *= 2; // Double points for guessing their top priority
+                        }
                       }
                     }
                     
@@ -2183,7 +2174,7 @@ export default function MinimalApp() {
     const partnerWishes = selectedInnermost.partnerWishes || getPartnerWishes();
     
     return (
-      <div className="min-h-screen bg-green-50">
+      <div className="min-h-screen" style={{background: 'linear-gradient(135deg, #8B7355 0%, #6B5B45 100%)'}}>
         <div className="bg-white shadow-md border-b-4 border-yellow-800">
           <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
             <h1 className="text-xl font-bold text-green-800">🌳 The Willing Tree</h1>
@@ -2279,11 +2270,7 @@ export default function MinimalApp() {
                               {isSelected ? priority : '?'}
                             </div>
                             
-                            {wish.isMostCherished && (
-                              <span className="text-xs bg-yellow-100 px-2 py-1 rounded text-yellow-800 flex items-center gap-1">
-                                ⭐ Most Cherished
-                              </span>
-                            )}
+                            {/* Most Wanted hidden from partner's view */}
                             
                             {isSelected && (
                               <span className="text-xs bg-purple-100 px-2 py-1 rounded text-purple-800 font-medium">
