@@ -86,7 +86,22 @@ export const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess }) =
         onAuthSuccess(userProfile);
       }, 2000);
     } catch (err: any) {
-      setError(err.message || 'Signup failed');
+      // Handle specific Firebase auth errors
+      if (err.code === 'auth/email-already-in-use' || err.message?.includes('already in use')) {
+        setError('This email is already registered. Please log in instead.');
+        // Automatically switch to login mode after 2 seconds
+        setTimeout(() => {
+          setMode('login');
+          setError('');
+          setSuccess('Please log in with your existing account.');
+        }, 2000);
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password should be at least 6 characters.');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Please enter a valid email address.');
+      } else {
+        setError(err.message || 'Signup failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -112,11 +127,20 @@ export const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess }) =
 
       onAuthSuccess(userProfile);
     } catch (err: any) {
+      // Handle specific Firebase auth errors
       if (err.message.includes('multi-factor')) {
         setShow2FA(true);
         setError('Please complete 2FA verification');
+      } else if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+        setError('Invalid email or password. Please check your credentials.');
+      } else if (err.code === 'auth/wrong-password') {
+        setError('Incorrect password. Please try again or reset your password.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many failed attempts. Please try again later or reset your password.');
+      } else if (err.code === 'auth/user-disabled') {
+        setError('This account has been disabled. Please contact support.');
       } else {
-        setError(err.message || 'Login failed');
+        setError(err.message || 'Login failed. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -207,7 +231,29 @@ export const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess }) =
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-800 text-sm">{error}</p>
+            <p className="text-red-800 text-sm font-medium">{error}</p>
+            {error.includes('already registered') && (
+              <button
+                onClick={() => {
+                  setMode('login');
+                  setError('');
+                }}
+                className="mt-2 text-red-700 underline text-sm hover:text-red-900"
+              >
+                Go to Login →
+              </button>
+            )}
+            {(error.includes('password') || error.includes('credentials')) && mode === 'login' && (
+              <button
+                onClick={() => {
+                  setMode('reset');
+                  setError('');
+                }}
+                className="mt-2 text-red-700 underline text-sm hover:text-red-900"
+              >
+                Forgot Password? →
+              </button>
+            )}
           </div>
         )}
 
@@ -308,13 +354,24 @@ export const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess }) =
                 >
                   {loading ? 'Logging in...' : 'Log In'}
                 </button>
-                <div className="mt-4 text-center">
+                <div className="mt-4 flex justify-between">
                   <button
                     type="button"
                     onClick={() => setMode('reset')}
-                    className="text-green-600 hover:text-green-700 text-sm"
+                    className="text-green-600 hover:text-green-700 text-sm font-medium"
                   >
                     Forgot Password?
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('signup');
+                      setError('');
+                      setSuccess('');
+                    }}
+                    className="text-green-600 hover:text-green-700 text-sm font-medium"
+                  >
+                    Create Account
                   </button>
                 </div>
               </form>
@@ -440,35 +497,49 @@ export const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess }) =
               </form>
             )}
 
-            {/* Mode Switch */}
-            <div className="mt-6 text-center">
+            {/* Mode Switch with Clear CTAs */}
+            <div className="mt-6">
               {mode === 'login' ? (
-                <p className="text-gray-600">
-                  Don't have an account?{' '}
+                <div className="text-center border-t pt-6">
+                  <p className="text-gray-600 mb-3">New to The Willing Tree?</p>
                   <button
-                    onClick={() => setMode('signup')}
-                    className="text-green-600 hover:text-green-700 font-medium"
+                    onClick={() => {
+                      setMode('signup');
+                      setError('');
+                      setSuccess('');
+                    }}
+                    className="w-full bg-gray-100 text-green-700 py-2 px-4 rounded-lg hover:bg-gray-200 font-medium transition-colors"
                   >
-                    Sign Up
+                    Create Your Account
                   </button>
-                </p>
+                </div>
               ) : mode === 'signup' ? (
-                <p className="text-gray-600">
-                  Already have an account?{' '}
+                <div className="text-center border-t pt-6">
+                  <p className="text-gray-600 mb-3">Already have an account?</p>
                   <button
-                    onClick={() => setMode('login')}
+                    onClick={() => {
+                      setMode('login');
+                      setError('');
+                      setSuccess('');
+                    }}
+                    className="w-full bg-gray-100 text-green-700 py-2 px-4 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+                  >
+                    Log In to Your Account
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center border-t pt-6">
+                  <button
+                    onClick={() => {
+                      setMode('login');
+                      setError('');
+                      setSuccess('');
+                    }}
                     className="text-green-600 hover:text-green-700 font-medium"
                   >
-                    Log In
+                    ← Back to Login
                   </button>
-                </p>
-              ) : (
-                <button
-                  onClick={() => setMode('login')}
-                  className="text-green-600 hover:text-green-700 font-medium"
-                >
-                  Back to Login
-                </button>
+                </div>
               )}
             </div>
           </>

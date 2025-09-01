@@ -77,7 +77,12 @@ class AuthService {
 
       return userProfile;
     } catch (error: any) {
-      throw new Error(`Signup failed: ${error.message}`);
+      // Preserve Firebase error codes for better error handling
+      const err = {
+        code: error.code,
+        message: error.message
+      };
+      throw err;
     }
   }
 
@@ -90,7 +95,20 @@ class AuthService {
       // Get user profile from Firestore
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       if (!userDoc.exists()) {
-        throw new Error('User profile not found');
+        // Create profile for users who signed up before Firestore was integrated
+        const userProfile: UserProfile = {
+          uid: user.uid,
+          email: user.email!,
+          displayName: user.displayName || user.email!.split('@')[0],
+          createdAt: serverTimestamp(),
+          lastLogin: serverTimestamp(),
+          emailVerified: user.emailVerified,
+          twoFactorEnabled: false,
+          activeInnermosts: [],
+          subscriptionStatus: 'free'
+        };
+        await setDoc(doc(db, 'users', user.uid), userProfile);
+        return userProfile;
       }
 
       const userProfile = userDoc.data() as UserProfile;
@@ -103,7 +121,12 @@ class AuthService {
 
       return userProfile;
     } catch (error: any) {
-      throw new Error(`Login failed: ${error.message}`);
+      // Preserve Firebase error codes for better error handling
+      const err = {
+        code: error.code,
+        message: error.message
+      };
+      throw err;
     }
   }
 
@@ -122,7 +145,12 @@ class AuthService {
     try {
       await sendPasswordResetEmail(auth, email);
     } catch (error: any) {
-      throw new Error(`Password reset failed: ${error.message}`);
+      // Preserve Firebase error codes
+      const err = {
+        code: error.code,
+        message: error.message
+      };
+      throw err;
     }
   }
 
