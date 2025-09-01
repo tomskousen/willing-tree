@@ -4,12 +4,73 @@ A hybrid PWA for couples to grow their relationships through weekly intentional 
 
 ## 🎯 Core Concept
 
-**Willing Box** helps couples create deeper connections through:
+**Willing Tree** helps couples create deeper connections through:
 
-- **20-item Wants Lists**: Partners create lists of behaviors they'd like to see
-- **5-item Willing Lists**: Partners privately select what they're willing to work on  
-- **Weekly Guessing Game**: Partners guess what the other worked on for points
-- **Privacy-First Design**: Willing lists remain private to preserve autonomy
+- **12-item Wishlists**: Each partner creates wishes for what they'd like from their partner
+- **Partner's Wishes ARE Visible**: You can see what your partner wishes for
+- **5-item Willing Lists**: Secretly select from your PARTNER'S wishlist what you're willing to do
+- **Weekly Guessing Game**: Partners guess what the other was willing to work on
+- **Privacy Where It Matters**: Willing selections remain private to preserve autonomy
+
+## 🎮 Complete Game Flow - Step by Step
+
+### Phase 1: Getting Started
+1. **Sign Up** → Create account with email and password
+2. **Profile Setup** → Enter name, age, gender (helps with AI suggestions)
+3. **Pair with Partner** → Send invite via email or share QR code
+4. **Partner Accepts** → Both partners are now connected in an "Innermost"
+
+### Phase 2: Creating Wishlists (One-Time Setup)
+5. **Create Your Wishlist** → Write 12 wishes of what you'd like from your partner
+   - Example: "I wish you would give me a hug when you come home"
+   - AI suggests age/gender-appropriate wishes if you need ideas
+   - Mark 2 wishes as "Most Wanted" (worth double points)
+6. **Partner Creates Their Wishlist** → Your partner does the same
+7. **Review Partner's Wishes** → You can now SEE what your partner wishes for
+   - This promotes understanding and communication
+   - You learn what matters to your partner
+
+### Phase 3: Weekly Cycle (Repeats Every Week)
+
+#### Monday - Selection Day
+8. **Select Your Willing List** → SECRETLY choose 5 items from your PARTNER'S wishlist
+   - You're choosing what you're willing to work on this week
+   - Rank them 1-5 by priority
+   - Your partner CANNOT see your selections (privacy preserved)
+9. **Partner Selects Too** → They secretly choose from YOUR wishlist
+
+#### Tuesday-Saturday - Action Days  
+10. **Work on Your Willing Items** → Throughout the week, do the things you selected
+    - No pressure or monitoring from partner
+    - Work at your own pace
+    - Focus on the items you prioritized
+
+#### Sunday - Guessing & Reveal Day
+11. **Guess Partner's Willing** → Look at YOUR wishlist and guess which 5 items your partner selected
+    - "I think they were willing to work on these 5 wishes of mine"
+12. **Partner Guesses Too** → They guess which of their wishes you selected
+13. **See Results** → The app reveals:
+    - What you guessed vs. what they actually selected
+    - What they guessed vs. what you actually selected
+    - Points earned (see scoring below)
+14. **Review & Reflect** → Discuss what worked, celebrate efforts
+
+### Phase 4: Continue Growing
+15. **Next Week** → Return to Phase 3, Step 8
+    - Keep the same wishlists for consistency
+    - Select new willing items based on what you learned
+    - Build momentum week after week
+
+### Scoring System
+- **Correct Guess**: 1 point (2 points if it was a "Most Wanted" item)
+- **Partner Guessed You Correctly**: 2 points (4 points if "Most Wanted")
+- **Why?** This rewards DOING the behaviors more than monitoring your partner
+
+### What Makes This Special
+- **Wishes are visible** → Promotes open communication about needs
+- **Willing is private** → Preserves autonomy and prevents coercion
+- **Weekly cycles** → Creates sustainable habits
+- **Gamification** → Makes relationship work fun and engaging
 
 ## 🏗️ Architecture
 
@@ -114,16 +175,17 @@ npm run android
 
 ## 🏃‍♂️ Usage
 
-### User Flow
+### Quick User Flow Summary
 1. **Sign Up**: Create account with email/password
 2. **Pair**: Invite partner via email or QR code  
-3. **Create Wants**: Each partner lists 20 desired behaviors
-4. **Select Willing**: Each partner privately picks 5 items to work on
-5. **Weekly Cycle**: 
-   - Work on chosen behaviors
-   - Guess what partner worked on
+3. **Create Wishlist**: Each partner lists 12 wishes
+4. **View Partner's Wishes**: See what your partner wishes for
+5. **Select Willing**: Secretly pick 5 from PARTNER'S wishlist
+6. **Weekly Cycle**: 
+   - Work on selected items
+   - Guess partner's selections
    - Reveal scores
-   - Repeat for new week
+   - Select new willing items next week
 
 ### Subscription Model
 - **Free**: 1 Innermost (relationship pairing)
@@ -150,11 +212,12 @@ npm run build:prod     # Full production build with linting
 
 ## 🎨 Design System
 
-### Colors
-- **Primary**: Blue (#3B82F6) - Main brand color
-- **Willing**: Green (#22C55E) - Willing actions  
-- **Background**: Gray-50 (#F9FAFB) - App background
-- **Text**: Gray-900 (#111827) - Primary text
+### Colors (Organic Growth Theme)
+- **Tree Green** (#4A8B4A): Primary actions and growth elements
+- **Bark Brown** (#8B6F47): Warm accents and earth tones  
+- **Stone Grey** (#6B7280): Text and neutral elements
+- **Background** (#FAF7F5): Warm bark-tinted background
+- **Text** (#1F2937): High-contrast readable text
 
 ### Breakpoints
 - **Mobile**: < 640px (primary target)
