@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useInnermostStore } from '../stores/innermostStore';
 import { Button } from '../components/Button';
-import { Heart, Plus, Users, Trophy } from 'lucide-react';
+import { TreePine, Plus, Users, Trophy, Leaf } from 'lucide-react';
 
 export const HomePage: FC = () => {
   const { user } = useAuthStore();
@@ -14,50 +14,49 @@ export const HomePage: FC = () => {
       {/* Welcome Header */}
       <div className="text-center py-8">
         <div className="inline-flex items-center justify-center w-20 h-20 bg-primary-100 rounded-full mb-4">
-          <Heart className="w-10 h-10 text-primary-600 fill-current" />
+          <TreePine className="w-10 h-10 text-primary-600" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Welcome back, {user?.displayName}!
-        </h1>
-        <p className="text-gray-600">
-          Ready to grow your relationships?
+        <h1 className="text-3xl font-bold text-tree-900">The WillingTree</h1>
+        <h2 className="text-lg text-tree-700 font-medium mt-1">Dashboard</h2>
+        <p className="text-tree-600 text-sm mt-2">
+          Welcome back, {user?.displayName}! Ready to nurture your relationships?
         </p>
       </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl p-4 text-center border border-gray-200">
-          <Users className="w-6 h-6 text-primary-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900">{innermosts.length}</div>
-          <div className="text-sm text-gray-500">Active Innermosts</div>
+        <div className="bg-white rounded-xl p-4 text-center border border-tree-200">
+          <TreePine className="w-6 h-6 text-primary-600 mx-auto mb-2" />
+          <div className="text-2xl font-bold text-tree-900">{innermosts.length}</div>
+          <div className="text-sm text-tree-600">Growing Trees</div>
         </div>
-        <div className="bg-white rounded-xl p-4 text-center border border-gray-200">
-          <Trophy className="w-6 h-6 text-willing-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900">0</div>
-          <div className="text-sm text-gray-500">Total Score</div>
+        <div className="bg-white rounded-xl p-4 text-center border border-tree-200">
+          <Leaf className="w-6 h-6 text-willing-600 mx-auto mb-2" />
+          <div className="text-2xl font-bold text-tree-900">0</div>
+          <div className="text-sm text-tree-600">Leaves Grown</div>
         </div>
       </div>
 
       {/* Main Actions */}
       <div className="space-y-4">
         {innermosts.length === 0 ? (
-          <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl p-6 text-white text-center">
-            <Heart className="w-12 h-12 mx-auto mb-4 opacity-80" />
-            <h3 className="text-lg font-semibold mb-2">Start Your First Innermost</h3>
-            <p className="text-primary-100 mb-4 text-sm">
-              Connect with a partner and begin your journey of intentional relationship growth.
+          <div className="bg-gradient-to-r from-bark-400 to-bark-500 rounded-xl p-6 text-white text-center">
+            <TreePine className="w-12 h-12 mx-auto mb-4 opacity-90" />
+            <h3 className="text-lg font-semibold mb-2">Plant Your First Tree</h3>
+            <p className="text-bark-100 mb-4 text-sm">
+              Connect with someone special and begin nurturing your relationship tree.
             </p>
             <Link to="/innermosts">
-              <Button variant="secondary" className="bg-white text-primary-600 hover:bg-gray-100">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Innermost
+              <Button variant="secondary" className="bg-white text-bark-700 hover:bg-bark-50">
+                <TreePine className="w-4 h-4 mr-2" />
+                🌱 Plant a Tree
               </Button>
             </Link>
           </div>
         ) : (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Your Innermosts</h2>
+              <h2 className="text-lg font-semibold text-tree-900">Your Growing Trees</h2>
               {canAddInnermost() && (
                 <Link to="/innermosts">
                   <Button size="sm" variant="ghost">
@@ -90,7 +89,7 @@ export const HomePage: FC = () => {
                   </div>
                   <Link to={`/innermosts/${innermost.id}`}>
                     <Button size="sm" fullWidth>
-                      {innermost.status === 'active' ? 'Enter Innermost' : 'Continue Setup'}
+                      {innermost.status === 'active' ? 'Tend to Tree' : 'Continue Planting'}
                     </Button>
                   </Link>
                 </div>
@@ -100,7 +99,7 @@ export const HomePage: FC = () => {
             {innermosts.length > 3 && (
               <Link to="/innermosts">
                 <Button variant="ghost" fullWidth>
-                  View All Innermosts ({innermosts.length})
+                  View All Trees ({innermosts.length})
                 </Button>
               </Link>
             )}
@@ -112,8 +111,8 @@ export const HomePage: FC = () => {
       <div className="grid grid-cols-2 gap-3">
         <Link to="/innermosts">
           <Button variant="ghost" fullWidth className="h-16 flex-col">
-            <Users className="w-6 h-6 mb-1" />
-            <span className="text-xs">Innermosts</span>
+            <TreePine className="w-6 h-6 mb-1" />
+            <span className="text-xs">Trees</span>
           </Button>
         </Link>
         <Link to="/profile">

@@ -1,5 +1,5 @@
 import { loadStripe, type Stripe } from '@stripe/stripe-js';
-import { User } from '../types';
+import type { User } from '../types/index';
 
 // Initialize Stripe
 let stripePromise: Promise<Stripe | null>;

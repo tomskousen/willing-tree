@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { Innermost, PairingInvitation, WillingBox, WeeklyScore } from '../types';
+import type { Innermost, PairingInvitation, WillingBox, WeeklyScore } from '../types/index';
 
 interface InnermostState {
   // Data

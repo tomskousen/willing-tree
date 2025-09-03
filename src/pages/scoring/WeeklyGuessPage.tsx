@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { FirestoreService } from '../../services/firestoreService';
 import { ScoringEngine } from '../../core/scoring';
-import { Want, WillingBox, Innermost, WeeklyScore } from '../../types';
+import type { Want, WillingBox, Innermost, WeeklyScore } from '../../types/index';
 import { toast } from 'react-hot-toast';
 import { ArrowLeft, Star, Trophy, Clock, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

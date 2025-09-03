@@ -19,8 +19,11 @@ export interface Innermost {
   id: string;
   partnerA: string;
   partnerB: string;
+  partnerAName: string;
+  partnerBName: string;
   partnerAEmail: string;
   partnerBEmail: string;
+  currentWeek: number;
   status: 'pending' | 'active' | 'paused';
   pairingCode?: string;
   inviteMessage?: string;

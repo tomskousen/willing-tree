@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useAuthStore } from '../stores/authStore';
 import { FirestoreService } from '../services/firestoreService';
 import { SubscriptionService } from '../services/subscriptionService';
-import { User } from '../types';
+import type { User } from '../types/index';
 import { toast } from 'react-hot-toast';
 import { User as UserIcon, Mail, Calendar, Users, Crown, Edit2, Save, X } from 'lucide-react';
 import { motion } from 'framer-motion';

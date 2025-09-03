@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Heart } from 'lucide-react';
+import { Eye, EyeOff, TreePine, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuthStore } from '../../stores/authStore';
 import { Button } from '../../components/Button';
@@ -34,10 +34,27 @@ export const LoginPage = () => {
     try {
       clearError();
       await login(data.email, data.password);
-      toast.success('Welcome back!');
+      toast.success('Welcome back to The Willing Tree! 🌳');
       navigate('/', { replace: true });
-    } catch (err) {
-      toast.error('Login failed. Please check your credentials.');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      
+      // Check for specific Firebase errors
+      if (err?.code === 'auth/invalid-credential' || err?.code === 'auth/wrong-password') {
+        toast.error('Invalid email or password. Please try again.');
+      } else if (err?.code === 'auth/user-not-found') {
+        toast.error('No account found with this email. Please sign up first.');
+      } else if (err?.code === 'auth/too-many-requests') {
+        toast.error('Too many failed attempts. Please try again later.');
+      } else if (err?.code === 'auth/invalid-email') {
+        toast.error('Invalid email format. Please check your email.');
+      } else if (err?.code === 'auth/network-request-failed') {
+        toast.error('Network error. Please check your connection.');
+      } else if (!import.meta.env.VITE_FIREBASE_API_KEY || import.meta.env.VITE_FIREBASE_API_KEY === 'your_api_key_here') {
+        toast.error('🔧 Firebase is not configured. Please set up Firebase credentials.');
+      } else {
+        toast.error(`Login failed: ${err?.code || 'Please check your credentials.'}`);
+      }
     }
   };
 
@@ -52,10 +69,11 @@ export const LoginPage = () => {
         {/* Logo/Branding */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4">
-            <Heart className="w-8 h-8 text-white fill-current" />
+            <TreePine className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
-          <p className="text-gray-600 mt-1">Sign in to continue growing together</p>
+          <h1 className="text-3xl font-bold text-tree-900">The WillingTree</h1>
+          <h2 className="text-lg text-tree-700 mt-1 font-medium">Sign In</h2>
+          <p className="text-tree-600 mt-2 text-sm">Nurture your growing relationships</p>
         </div>
 
         {/* Login Form */}
@@ -145,6 +163,7 @@ export const LoginPage = () => {
               <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
+          
 
           {/* Submit Button */}
           <Button
@@ -155,6 +174,23 @@ export const LoginPage = () => {
           >
             Sign In
           </Button>
+          
+          {/* Test Account Button - Remove in production */}
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => {
+                const form = document.getElementById('email') as HTMLInputElement;
+                const pass = document.getElementById('password') as HTMLInputElement;
+                if (form) form.value = 'demo@willingtree.app';
+                if (pass) pass.value = 'demo123456';
+                toast.success('Demo credentials filled! Click Sign In to continue. 🌳');
+              }}
+              className="text-xs text-tree-600 hover:text-tree-700 underline"
+            >
+              Use demo account (demo@willingtree.app)
+            </button>
+          </div>
 
           {/* Divider */}
           <div className="relative">

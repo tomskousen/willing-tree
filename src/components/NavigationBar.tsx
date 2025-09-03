@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Settings, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, Settings, MoreHorizontal, TreePine } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import { useInnermostStore } from '../stores/innermostStore';
 import { Button } from './Button';
@@ -40,7 +40,7 @@ export const NavigationBar: FC<NavigationBarProps> = ({
     }
     
     // Default app name
-    return 'Willing Box';
+    return 'The WillingTree';
   };
 
   const getSubtitle = () => {
@@ -50,7 +50,7 @@ export const NavigationBar: FC<NavigationBarProps> = ({
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 px-4 py-3">
+    <nav className="bg-white border-b border-tree-200 px-4 py-3">
       <div className="flex items-center justify-between max-w-md mx-auto">
         {/* Left side */}
         <div className="flex items-center">
@@ -68,11 +68,14 @@ export const NavigationBar: FC<NavigationBarProps> = ({
 
         {/* Center - Title and Partner Names */}
         <div className="flex-1 text-center">
-          <h1 className="text-lg font-semibold text-gray-900 truncate">
-            {getDisplayTitle()}
-          </h1>
+          <div className="flex items-center justify-center gap-2">
+            <TreePine className="w-5 h-5 text-primary-600" />
+            <h1 className="text-lg font-semibold text-tree-900 truncate">
+              {getDisplayTitle()}
+            </h1>
+          </div>
           {getSubtitle() && (
-            <p className="text-sm text-gray-500 truncate">
+            <p className="text-sm text-tree-600 truncate">
               {getSubtitle()}
             </p>
           )}

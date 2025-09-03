@@ -2,15 +2,19 @@ import { FC, useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { FirestoreService } from '../../services/firestoreService';
 import { SubscriptionService } from '../../services/subscriptionService';
-import { Innermost } from '../../types';
+import type { Innermost } from '../../types/index';
 import { toast } from 'react-hot-toast';
-import { Heart, Plus, Users, Calendar, Star, Settings } from 'lucide-react';
+import { TreePine, Plus, Users, Calendar, Star, Settings, Mail, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { sendInviteEmail } from '../../services/emailService';
+import { smsService } from '../../services/sms.service';
 
 interface PairingInvite {
   email: string;
+  phone?: string;
   message?: string;
+  inviteMethod: 'email' | 'sms';
 }
 
 export const InnermostsPage: FC = () => {
@@ -18,7 +22,7 @@ export const InnermostsPage: FC = () => {
   const [innermosts, setInnermosts] = useState<Innermost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [pairingForm, setPairingForm] = useState<PairingInvite>({ email: '', message: '' });
+  const [pairingForm, setPairingForm] = useState<PairingInvite>({ email: '', phone: '', message: '', inviteMethod: 'email' });
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
@@ -48,14 +52,23 @@ export const InnermostsPage: FC = () => {
   };
 
   const handleCreateInnermost = async () => {
-    if (!user || !pairingForm.email.trim()) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
+    if (!user) return;
 
-    if (pairingForm.email === user.email) {
-      toast.error('You cannot pair with yourself');
-      return;
+    // Validate based on invite method
+    if (pairingForm.inviteMethod === 'email') {
+      if (!pairingForm.email.trim()) {
+        toast.error('Please enter a valid email address');
+        return;
+      }
+      if (pairingForm.email === user.email) {
+        toast.error('You cannot pair with yourself');
+        return;
+      }
+    } else if (pairingForm.inviteMethod === 'sms') {
+      if (!pairingForm.phone?.trim() || !smsService.isValidPhoneNumber(pairingForm.phone)) {
+        toast.error('Please enter a valid phone number');
+        return;
+      }
     }
 
     try {
@@ -67,8 +80,11 @@ export const InnermostsPage: FC = () => {
       const newInnermost: Omit<Innermost, 'id' | 'createdAt'> = {
         partnerA: user.id,
         partnerB: '', // Will be filled when partner accepts
+        partnerAName: user.displayName || user.email,
+        partnerBName: '',
         partnerAEmail: user.email,
         partnerBEmail: pairingForm.email.trim().toLowerCase(),
+        currentWeek: 0,
         status: 'pending',
         pairingCode,
         inviteMessage: pairingForm.message?.trim() || undefined
@@ -76,14 +92,33 @@ export const InnermostsPage: FC = () => {
 
       const createdInnermost = await FirestoreService.createInnermost(newInnermost);
       
+      // Send invitation based on method
+      if (pairingForm.inviteMethod === 'email') {
+        await sendInviteEmail({
+          partnerEmail: pairingForm.email,
+          senderName: user.displayName || user.email,
+          senderEmail: user.email,
+          inviteMessage: pairingForm.message,
+          appUrl: `${window.location.origin}/pair?code=${pairingCode}`
+        });
+      } else if (pairingForm.inviteMethod === 'sms' && pairingForm.phone) {
+        await smsService.sendPairingInviteSMS({
+          toPhone: smsService.formatPhoneNumber(pairingForm.phone),
+          fromName: user.displayName || user.email,
+          pairingCode: pairingCode,
+          message: pairingForm.message
+        });
+      }
+      
       // Add to local state
       setInnermosts(prev => [...prev, createdInnermost]);
       
       // Reset form
-      setPairingForm({ email: '', message: '' });
+      setPairingForm({ email: '', phone: '', message: '', inviteMethod: 'email' });
       setShowCreateForm(false);
       
-      toast.success(`Invitation sent to ${pairingForm.email}!`);
+      const recipient = pairingForm.inviteMethod === 'email' ? pairingForm.email : pairingForm.phone;
+      toast.success(`Invitation sent to ${recipient}!`);
       
     } catch (error) {
       console.error('Error creating innermost:', error);
@@ -104,10 +139,10 @@ export const InnermostsPage: FC = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'active': return <Heart className="w-4 h-4" />;
+      case 'active': return <TreePine className="w-4 h-4" />;
       case 'pending': return <Calendar className="w-4 h-4" />;
       case 'paused': return <Settings className="w-4 h-4" />;
-      default: return <Users className="w-4 h-4" />;
+      default: return <TreePine className="w-4 h-4" />;
     }
   };
 
@@ -133,13 +168,16 @@ export const InnermostsPage: FC = () => {
     <div className="p-4 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Heart className="w-6 h-6 text-red-500" />
-            My Innermosts
-          </h1>
-          <p className="text-gray-600 text-sm mt-1">
-            {innermosts.length} of {SubscriptionService.getUserPlan(user!).maxInnermosts} relationships
-          </p>
+          <div>
+            <h1 className="text-3xl font-bold text-tree-900">The WillingTree</h1>
+            <h2 className="text-lg text-tree-700 font-medium flex items-center gap-2 mt-1">
+              <TreePine className="w-5 h-5 text-primary-600" />
+              My Growing Trees
+            </h2>
+            <p className="text-tree-600 text-sm mt-2">
+              {innermosts.length} of {SubscriptionService.getUserPlan(user!).maxInnermosts} trees growing
+            </p>
+          </div>
         </div>
         
         {canCreateNewInnermost() && (
@@ -147,8 +185,8 @@ export const InnermostsPage: FC = () => {
             onClick={() => setShowCreateForm(true)}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
           >
-            <Plus className="w-4 h-4" />
-            New Innermost
+            <TreePine className="w-4 h-4" />
+            Plant New Tree
           </button>
         )}
       </div>
@@ -170,33 +208,81 @@ export const InnermostsPage: FC = () => {
               className="bg-white rounded-lg p-6 w-full max-w-md"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-xl font-bold mb-4">Invite Someone Special</h2>
+              <h2 className="text-xl font-bold mb-4 text-tree-800">Plant a Tree Together 🌳</h2>
               
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Their Email Address
-                  </label>
-                  <input
-                    type="email"
-                    value={pairingForm.email}
-                    onChange={(e) => setPairingForm(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="partner@example.com"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  />
+                {/* Invite Method Toggle */}
+                <div className="flex gap-2 p-1 bg-bark-100 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => setPairingForm(prev => ({ ...prev, inviteMethod: 'email' }))}
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                      pairingForm.inviteMethod === 'email'
+                        ? 'bg-white text-primary-700 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                  >
+                    <Mail className="w-4 h-4" />
+                    Email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPairingForm(prev => ({ ...prev, inviteMethod: 'sms' }))}
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                      pairingForm.inviteMethod === 'sms'
+                        ? 'bg-white text-primary-700 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Text/SMS
+                  </button>
                 </div>
+
+                {/* Email Input */}
+                {pairingForm.inviteMethod === 'email' && (
+                  <div>
+                    <label className="block text-sm font-medium text-tree-700 mb-1">
+                      Their Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={pairingForm.email}
+                      onChange={(e) => setPairingForm(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="partner@example.com"
+                      className="w-full px-3 py-2 border-2 border-tree-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* Phone Input */}
+                {pairingForm.inviteMethod === 'sms' && (
+                  <div>
+                    <label className="block text-sm font-medium text-tree-700 mb-1">
+                      Their Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={pairingForm.phone}
+                      onChange={(e) => setPairingForm(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="(555) 123-4567"
+                      className="w-full px-3 py-2 border-2 border-tree-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      required
+                    />
+                  </div>
+                )}
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-tree-700 mb-1">
                     Personal Message (Optional)
                   </label>
                   <textarea
                     value={pairingForm.message}
                     onChange={(e) => setPairingForm(prev => ({ ...prev, message: e.target.value }))}
-                    placeholder="Hey! I'd love to grow our relationship together using Willing Box..."
+                    placeholder="Let's grow our relationship together with The Willing Tree..."
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-2 border-2 border-tree-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
               </div>
@@ -210,10 +296,10 @@ export const InnermostsPage: FC = () => {
                 </button>
                 <button
                   onClick={handleCreateInnermost}
-                  disabled={!pairingForm.email.trim() || isCreating}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  disabled={(pairingForm.inviteMethod === 'email' ? !pairingForm.email.trim() : !pairingForm.phone?.trim()) || isCreating}
+                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isCreating ? 'Sending...' : 'Send Invitation'}
+                  {isCreating ? 'Planting...' : '🌱 Plant Tree Together'}
                 </button>
               </div>
             </motion.div>
@@ -224,21 +310,21 @@ export const InnermostsPage: FC = () => {
       {/* Innermosts List */}
       <div className="space-y-4">
         {innermosts.length === 0 ? (
-          <div className="text-center py-12">
-            <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No Innermosts Yet
+          <div className="text-center py-12 bg-bark-50 rounded-xl p-8">
+            <TreePine className="w-16 h-16 text-tree-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-tree-900 mb-2">
+              No Trees Growing Yet
             </h3>
-            <p className="text-gray-600 mb-6">
-              Start building deeper connections by inviting someone special.
+            <p className="text-tree-700 mb-6">
+              Start nurturing relationships by planting a tree with someone special.
             </p>
             {canCreateNewInnermost() && (
               <button
                 onClick={() => setShowCreateForm(true)}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 transition-colors"
+                className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 transition-colors"
               >
-                <Plus className="w-5 h-5" />
-                Create Your First Innermost
+                <TreePine className="w-5 h-5" />
+                Plant Your First Tree
               </button>
             )}
           </div>
@@ -280,7 +366,7 @@ export const InnermostsPage: FC = () => {
                   {innermost.status === 'active' && (
                     <Link
                       to={`/innermosts/${innermost.id}`}
-                      className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-sm transition-colors"
+                      className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-md text-sm transition-colors"
                     >
                       View
                     </Link>
@@ -306,16 +392,16 @@ export const InnermostsPage: FC = () => {
           className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-green-200 rounded-lg p-4 mt-6"
         >
           <div className="flex items-center gap-3">
-            <Star className="w-6 h-6 text-green-600" />
+            <Star className="w-6 h-6 text-primary-600" />
             <div className="flex-1">
-              <h3 className="font-semibold text-green-900">Want More Relationships?</h3>
-              <p className="text-sm text-green-700">
-                Upgrade to Premium to manage up to 3 active Innermosts and unlock advanced features.
+              <h3 className="font-semibold text-tree-900">Want to Grow More Trees?</h3>
+              <p className="text-sm text-tree-700">
+                Upgrade to Premium to nurture up to 3 trees and unlock advanced features.
               </p>
             </div>
             <Link
               to="/subscription"
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
               Upgrade
             </Link>

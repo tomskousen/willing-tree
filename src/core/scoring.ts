@@ -1,4 +1,4 @@
-import { Want, WeeklyScore, WeeklyGuess } from '../types';
+import type { Want, WeeklyScore, WeeklyGuess } from '../types/index';
 
 /**
  * CORE SCORING LOGIC - CRITICAL FOR PRIVACY & INCENTIVES

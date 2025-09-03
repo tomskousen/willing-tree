@@ -10,6 +10,7 @@ import { NavigationBar } from './components/NavigationBar';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { SignupPage } from './pages/auth/SignupPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { InnermostsPage } from './pages/innermosts/InnermostsPage';
 import { CreateWantsPage } from './pages/wants/CreateWantsPage';
 import { SelectWillingPage } from './pages/willing/SelectWillingPage';
@@ -29,7 +30,9 @@ const queryClient = new QueryClient({
 
 // Auth Guard Component
 const AuthGuard = ({ children }: { children: React.ReactNode }) => {
-  const { user, isInitialized } = useAuthStore();
+  const { user, isInitialized, error } = useAuthStore();
+  
+  console.log('[AuthGuard] Render - isInitialized:', isInitialized, 'user:', user?.email, 'error:', error);
   
   if (!isInitialized) {
     return (
@@ -39,10 +42,16 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
     );
   }
   
+  if (error) {
+    console.error('[AuthGuard] Auth error:', error);
+  }
+  
   if (!user) {
+    console.log('[AuthGuard] No user, redirecting to login');
     return <Navigate to="/auth/login" replace />;
   }
   
+  console.log('[AuthGuard] User authenticated, rendering children');
   return <>{children}</>;
 };
 
@@ -59,18 +68,28 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
+  console.log('[App] Component rendering');
+  
   useEffect(() => {
+    console.log('[App] useEffect - calling initializeAuth()');
     initializeAuth();
   }, []);
 
+  console.log('[App] Rendering QueryClientProvider and Router');
+  
+  // Use basename only in production (GitHub Pages)
+  const basename = import.meta.env.PROD ? '/willing-tree' : '/';
+  console.log('[App] Router basename:', basename, 'Mode:', import.meta.env.MODE);
+  
   return (
     <QueryClientProvider client={queryClient}>
-      <Router basename="/willing-tree">
+      <Router basename={basename}>
         <div className="App">
           <Routes>
             {/* Public Auth Routes */}
             <Route path="/auth/login" element={<LoginPage />} />
             <Route path="/auth/signup" element={<SignupPage />} />
+            <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
             
             {/* Protected Routes */}
             <Route path="/" element={

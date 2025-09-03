@@ -2,7 +2,7 @@ import { FC, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { FirestoreService } from '../../services/firestoreService';
-import { Want, WillingBox, Innermost } from '../../types';
+import type { Want, WillingBox, Innermost } from '../../types/index';
 import { toast } from 'react-hot-toast';
 import { ArrowLeft, Heart, Star, Check, Eye, EyeOff, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
